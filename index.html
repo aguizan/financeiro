@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Controle financeiro</title>
+<meta name="description" content="Controle financeiro pessoal: lançamentos, contas a pagar, metas e relatórios. Os dados ficam só no seu aparelho.">
+<meta name="theme-color" content="#1F4B3F">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Finanças">
+<script>
+  // Guarda o convite de instalação (Android/Chrome) para o botão "Instalar app".
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); window.__convite = e; window.dispatchEvent(new Event("cf-instalavel")); });
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("./sw.js").catch(function () {}); });
+  }
+</script>
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #F4F2EE; font-family: "DM Sans", system-ui, sans-serif; color: #1A1A1A; font-size: 13px; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #1F4B3F; text-decoration: none; }
+  a:hover { color: #2E6B58; text-decoration: underline; }
+  input, select, button { font-family: inherit; font-size: 13px; }
+  input:focus, select:focus { outline: 2px solid #1F4B3F; outline-offset: 1px; }
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1F4B3F"/><rect x="30" y="30" width="40" height="8" rx="4" fill="#F4F2EE"/><rect x="30" y="46" width="26" height="8" rx="4" fill="#C9A227"/><rect x="30" y="62" width="34" height="8" rx="4" fill="#E2B4A5"/></svg></template>
+<div style="max-width: 1280px; margin: 0 auto; padding: 14px 14px 28px;">
+
+  <header style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <h1 style="margin: 0; font-size: 19px; line-height: 1.1; font-weight: 700;">Controle financeiro</h1>
+      <span style="font-size: 12px; color: #7A756C;">{{ tituloMes }}</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+      <sc-if value="{{ podeInstalar }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ instalar }}" title="Instala o app na tela inicial" style="border: 1px solid #C9A227; background: #C9A227; color: #1A1A1A; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer;">Instalar app</button>
+      </sc-if>
+      <div style="display: flex; align-items: center; gap: 4px; background: #FFFFFF; border: 1px solid #DCD7CD; border-radius: 999px; padding: 3px 6px;">
+        <button onClick="{{ anoAnterior }}" title="Ano anterior" style="border: none; background: none; color: #7A756C; font-size: 14px; line-height: 1; cursor: pointer; padding: 4px 4px;" style-hover="color: #1F4B3F;">‹</button>
+        <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #4A463F;">{{ ano }}</span>
+        <button onClick="{{ anoSeguinte }}" title="Próximo ano" style="border: none; background: none; color: #7A756C; font-size: 14px; line-height: 1; cursor: pointer; padding: 4px 4px;" style-hover="color: #1F4B3F;">›</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; background: #FFFFFF; border: 1px solid #DCD7CD; border-radius: 999px; padding: 3px;">
+        <sc-for list="{{ months }}" as="m" hint-placeholder-count="12">
+          <button onClick="{{ m.select }}" style="border: none; border-radius: 999px; padding: 5px 8px; font-size: 12px; font-weight: 500; cursor: pointer; background: {{ m.bg }}; color: {{ m.fg }};">{{ m.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ togglePrivacy }}" style="border: 1px solid #DCD7CD; background: #FFFFFF; color: #4A463F; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">{{ privacyLabel }}</button>
+      <sc-if value="{{ suportaArquivo }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ abrirArquivo }}" title="{{ dicaAbrir }}" style="border: 1px solid #DCD7CD; background: #FFFFFF; color: #4A463F; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Abrir</button>
+      </sc-if>
+      <sc-if value="{{ semSuporteArquivo }}" hint-placeholder-val="{{ false }}">
+        <label title="Abrir: carrega os dados de um arquivo .json salvo" style="border: 1px solid #DCD7CD; background: #FFFFFF; color: #4A463F; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Abrir<input type="file" accept="application/json,.json" onChange="{{ importar }}" style="display: none;" /></label>
+      </sc-if>
+      <button onClick="{{ exportar }}" title="{{ dicaBackup }}" style="border: 1px solid #DCD7CD; background: #FFFFFF; color: #4A463F; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Backup</button>
+      <sc-if value="{{ suportaArquivo }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ sair }}" title="{{ dicaSair }}" style="border: 1px solid #1F4B3F; background: #1F4B3F; color: #F4F2EE; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;" style-hover="background: #2E6B58; border-color: #2E6B58;">Sair</button>
+      </sc-if>
+    </div>
+  </header>
+
+  <sc-if value="{{ mostrarBoasVindas }}" hint-placeholder-val="{{ false }}">
+    <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-left: 4px solid #1F4B3F; border-radius: 14px; padding: 15px; margin-bottom: 12px;">
+      <h2 style="margin: 0 0 8px; font-size: 15px; font-weight: 700;">Bem-vindo ao Controle financeiro</h2>
+      <div style="font-size: 12px; line-height: 1.6; color: #4A463F;">
+        <p style="margin: 0 0 6px;"><strong>Seus dados ficam só neste aparelho.</strong> Nada é enviado para a internet, e ninguém mais vê suas finanças.</p>
+        <p style="margin: 0 0 6px;"><strong>Faça backup de vez em quando:</strong> o botão Backup gera um arquivo que você pode guardar no WhatsApp, no Google Drive ou no e-mail. Para trocar de celular ou recuperar os dados, use o botão Abrir e escolha esse arquivo.</p>
+        <p style="margin: 0 0 6px;"><strong>Para começar:</strong> em Cadastros, cadastre suas contas, as contas a pagar do mês (aluguel, luz, internet…) e suas metas. Depois, lance entradas e saídas na aba Lançar.</p>
+        <p style="margin: 0;"><strong>Para instalar como app:</strong> no Android, toque no menu ⋮ do navegador e escolha "Instalar app" ou "Adicionar à tela inicial". No iPhone, abra no Safari, toque em Compartilhar e escolha "Adicionar à Tela de Início".</p>
+      </div>
+      <button onClick="{{ fecharBoasVindas }}" style="margin-top: 11px; border: none; border-radius: 9px; padding: 8px 16px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">Entendi, começar</button>
+    </section>
+  </sc-if>
+
+  <p style="margin: 0 0 6px; font-size: 11px; color: {{ corInfoDados }};">{{ infoDados }}</p>
+  <sc-if value="{{ temStatus }}" hint-placeholder-val="{{ false }}">
+    <p style="margin: 0 0 8px; font-size: 12px; color: {{ corStatus }};">{{ status }}</p>
+  </sc-if>
+
+  <nav style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+    <sc-for list="{{ abas }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.select }}" style="border: 1px solid {{ t.borda }}; background: {{ t.bg }}; color: {{ t.fg }}; border-radius: 10px; padding: 7px 15px; font-size: 13px; font-weight: 500; cursor: pointer;">{{ t.label }}</button>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{ isPainel }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px;">
+        <div style="background: #1F4B3F; color: #F4F2EE; border-radius: 14px; padding: 13px 15px;">
+          <div style="font-size: 11px; opacity: 0.75; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;">Saldo realizado</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-top: 4px; white-space: nowrap;">{{ saldoRealFmt }}</div>
+          <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">{{ saldoRealNota }}</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 13px 15px;">
+          <div style="font-size: 11px; color: #7A756C; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;">Entradas</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-top: 4px; color: #1F4B3F; white-space: nowrap;">{{ entradasFmt }}</div>
+          <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ entradasNota }}</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 13px 15px;">
+          <div style="font-size: 11px; color: #7A756C; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;">Saídas</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-top: 4px; color: #B2482F; white-space: nowrap;">{{ saidasFmt }}</div>
+          <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ saidasNota }}</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 13px 15px;">
+          <div style="font-size: 11px; color: #7A756C; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;">A receber no mês</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-top: 4px; color: #C9A227; white-space: nowrap;">{{ aReceberFmt }}</div>
+          <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ aReceberNota }}</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 13px 15px;">
+          <div style="font-size: 11px; color: #7A756C; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;">Dívidas futuras</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-top: 4px; color: #B2482F; white-space: nowrap;">{{ dividaFmt }}</div>
+          <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ dividaNota }}</div>
+        </div>
+      </section>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 10px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+              <h2 style="margin: 0; font-size: 14px; font-weight: 700;">{{ fluxoTitulo }}</h2>
+              <span style="font-size: 12px; color: #7A756C;">{{ fluxoResumo }}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 11px; margin-top: 12px;">
+              <sc-for list="{{ fluxo }}" as="f" hint-placeholder-count="2">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px;">
+                    <span style="font-weight: 500;">{{ f.label }}</span>
+                    <span style="font-family: 'DM Mono', monospace; color: #4A463F;">{{ f.valorFmt }}</span>
+                  </div>
+                  <div style="height: 11px; background: #F1EDE5; border-radius: 999px; margin-top: 5px; overflow: hidden;">
+                    <div style="height: 100%; border-radius: 999px; background: {{ f.cor }}; width: {{ f.w }};"></div>
+                  </div>
+                  <sc-if value="{{ f.temNota }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ f.nota }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #DCD7CD; font-size: 12px;">
+              <span style="font-weight: 700;">Saldo previsto do mês</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: {{ corSaldoPrevisto }};">{{ saldoPrevistoFmt }}</span>
+            </div>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <h2 style="margin: 0 0 11px; font-size: 14px; font-weight: 700;">Gastos por categoria</h2>
+            <sc-if value="{{ semGastos }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; font-size: 12px; color: #7A756C;">Nenhuma saída lançada neste mês.</p>
+            </sc-if>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <sc-for list="{{ categorias }}" as="c" hint-placeholder-count="4">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px;">
+                    <span style="display: inline-flex; align-items: center; gap: 7px; font-weight: 500;"><span style="width: 9px; height: 9px; border-radius: 3px; display: inline-block; background: {{ c.cor }};"></span>{{ c.nome }}</span>
+                    <span style="font-family: 'DM Mono', monospace; color: #4A463F;">{{ c.valorFmt }}</span>
+                  </div>
+                  <div style="height: 7px; background: #F1EDE5; border-radius: 999px; margin-top: 5px; overflow: hidden;">
+                    <div style="height: 100%; border-radius: 999px; background: {{ c.cor }}; width: {{ c.pct }};"></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ temAportes }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 10px 0 0; font-size: 11px; color: #7A756C;">{{ aportesNota }}</p>
+            </sc-if>
+          </section>
+
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Contas e cartões</h2>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <sc-for list="{{ contas }}" as="a" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 11px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+                  <span style="width: 28px; height: 19px; border-radius: 5px; flex: none; background: {{ a.cor }};"></span>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 500;">{{ a.nome }}</div>
+                    <div style="font-size: 11px; color: #7A756C;">{{ a.tipo }}</div>
+                  </div>
+                  <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: {{ a.corValor }};">{{ a.saldoFmt }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+              <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Movimentação</h2>
+              <span style="font-size: 11px; color: #7A756C;">{{ resumoContas }}</span>
+            </div>
+            <div style="margin-top: 4px;">
+              <sc-for list="{{ vencimentos }}" as="v" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-top: 5px; border-radius: 10px; background: {{ v.fundo }}; border-left: 3px solid {{ v.faixa }};">
+                  <button onClick="{{ v.pagar }}" title="{{ v.titulo }}" style="width: 19px; height: 19px; flex: none; border-radius: 6px; cursor: pointer; border: 2px solid {{ v.marcaBorda }}; background: {{ v.marcaBg }}; color: #FFFFFF; font-size: 11px; line-height: 1; padding: 0;">{{ v.marca }}</button>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 500; color: {{ v.corNome }};">{{ v.nome }}</div>
+                    <div style="font-size: 11px; color: {{ v.corPrazo }};">{{ v.prazo }}</div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px;">
+                    <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: {{ v.corValor }};">{{ v.valorFmt }}</div>
+                    <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; color: #FFFFFF; background: {{ v.faixa }};">{{ v.situacao }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #DCD7CD; display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                <span style="color: #4A463F;">Saldo realizado (itens marcados)</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 13px; color: {{ corMovRealizado }};">{{ movRealizadoFmt }}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                <span style="font-weight: 700;">Saldo previsto do mês</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: {{ corMovFinal }};">{{ movFinalFmt }}</span>
+              </div>
+              <div style="font-size: 11px; color: #7A756C;">{{ movDetalhe }}</div>
+            </div>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F4B3F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/></svg>
+              <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Avisos no calendário</h2>
+            </div>
+            <p style="margin: 8px 0 10px; font-size: 12px; line-height: 1.5; color: #4A463F;">Envia os movimentos para o calendário do celular. Cada conta a pagar ou a receber avisa às 8h do dia, e aos domingos chega o resumo da semana. O que já foi pago ou recebido fica registrado, sem aviso.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
+              <label style="display: block;">
+                <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Contas previstas e resumos</span>
+                <select value="{{ calHorizonte }}" onChange="{{ setCalHorizonte }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+                  <option value="3">Próximos 3 meses</option>
+                  <option value="6">Próximos 6 meses</option>
+                  <option value="12">Próximos 12 meses</option>
+                </select>
+              </label>
+              <label style="display: block;">
+                <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">O que enviar</span>
+                <select value="{{ calModo }}" onChange="{{ setCalModo }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+                  <option value="novos">Só o que é novo ou mudou</option>
+                  <option value="tudo">Tudo de novo</option>
+                </select>
+              </label>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px;">
+              <button type="button" onClick="{{ enviarCalendario }}" style="flex: 1 1 160px; border: none; background: #1F4B3F; color: #F4F2EE; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer;" style-hover="background: #2E6B58;">Enviar para o calendário</button>
+              <button type="button" onClick="{{ compartilharCalendario }}" title="Manda o arquivo por WhatsApp ou e-mail, por exemplo para abrir no computador" style="flex: 1 1 120px; border: 1px solid #1F4B3F; background: #FFFFFF; color: #1F4B3F; border-radius: 10px; padding: 9px 14px; font-weight: 700; cursor: pointer;" style-hover="background: #F1EDE5;">Compartilhar arquivo</button>
+            </div>
+            <p style="margin: 9px 0 0; font-size: 11px; color: {{ corCalInfo }};">{{ calInfo }}</p>
+            <details style="margin-top: 8px; font-size: 12px; color: #4A463F;">
+              <summary style="cursor: pointer; font-weight: 500; color: #1F4B3F;">Como abrir no meu celular</summary>
+              <div style="margin-top: 6px; line-height: 1.55; display: flex; flex-direction: column; gap: 6px;">
+                <p style="margin: 0;"><strong>iPhone:</strong> toque em Enviar para o calendário e depois em "Adicionar tudo". Dica: no app Calendário, crie antes um calendário chamado "Finanças" e escolha-o na hora de adicionar.</p>
+                <p style="margin: 0;"><strong>Android (Samsung e outros):</strong> toque em Enviar para o calendário e abra o arquivo baixado. Se o celular perguntar, escolha o app Calendário.</p>
+                <p style="margin: 0;"><strong>Google Agenda:</strong> o app do Google Agenda no celular não abre esse arquivo. Use Compartilhar arquivo, mande para você mesmo e, no computador, abra calendar.google.com › Configurações › Importar. Os eventos passam a aparecer no celular. Para o aviso das 8h, ajuste em Configurações › seu calendário › Notificações de eventos de dia inteiro.</p>
+                <p style="margin: 0;"><strong>Atenção:</strong> os valores ficam no seu calendário (e na nuvem dele, se for sincronizado). Lançamentos excluídos no app não somem do calendário: apague-os lá.</p>
+              </div>
+            </details>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+            <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Metas de economia</h2>
+            <sc-if value="{{ semMetas }}" hint-placeholder-val="{{ true }}">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #7A756C;">Nenhuma meta cadastrada. Crie uma na aba Cadastros e lance os aportes pelo botão "+ Aporte".</p>
+            </sc-if>
+            <div style="display: flex; flex-direction: column; gap: 11px;">
+              <sc-for list="{{ metas }}" as="g" hint-placeholder-count="0">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                    <span style="font-size: 13px; font-weight: 500;">{{ g.nome }}</span>
+                    <span style="display: inline-flex; align-items: baseline; gap: 8px;">
+                      <span style="font-family: 'DM Mono', monospace; font-size: 11px; color: #7A756C;">{{ g.progresso }}</span>
+                      <button onClick="{{ g.aportar }}" title="Lançar um aporte nesta meta" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 2px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">+ Aporte</button>
+                    </span>
+                  </div>
+                  <div style="height: 8px; background: #F1EDE5; border-radius: 999px; margin-top: 5px; overflow: hidden;">
+                    <div style="height: 100%; border-radius: 999px; background: {{ g.cor }}; width: {{ g.pct }};"></div>
+                  </div>
+                  <div style="font-size: 11px; color: #7A756C; margin-top: 4px;">{{ g.nota }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isLancar }}" hint-placeholder-val="{{ false }}">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start;">
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 12px; font-size: 14px; font-weight: 700;">{{ formTitulo }}</h2>
+        <form onSubmit="{{ salvarLancamento }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 9px;">
+          <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px;">
+            <button type="button" onClick="{{ escanear }}" aria-label="Escanear código com a câmera" title="Escanear com a câmera" style="flex: 1 1 120px; display: inline-flex; align-items: center; justify-content: center; border: none; background: #1F4B3F; color: #F4F2EE; border-radius: 10px; padding: 12px 14px; cursor: pointer;" style-hover="background: #2E6B58;"><svg width="64" height="36" viewBox="0 0 64 36" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="3" height="36"/><rect x="5" y="0" width="1.5" height="36"/><rect x="9" y="0" width="4" height="36"/><rect x="15" y="0" width="1.5" height="36"/><rect x="18.5" y="0" width="3" height="36"/><rect x="24" y="0" width="1.5" height="36"/><rect x="27.5" y="0" width="4" height="36"/><rect x="33.5" y="0" width="1.5" height="36"/><rect x="37" y="0" width="1.5" height="36"/><rect x="40.5" y="0" width="3" height="36"/><rect x="46" y="0" width="1.5" height="36"/><rect x="49.5" y="0" width="4" height="36"/><rect x="55.5" y="0" width="1.5" height="36"/><rect x="59" y="0" width="1.5" height="36"/><rect x="62" y="0" width="2" height="36"/></svg></button>
+            <label aria-label="Ler código de uma foto" title="Ler de uma foto" style="flex: 1 1 120px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #1F4B3F; background: #FFFFFF; color: #1F4B3F; border-radius: 10px; padding: 11px 14px; cursor: pointer;" style-hover="background: #F1EDE5;"><svg width="36" height="36" viewBox="0 0 21 21" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2z" fill-rule="evenodd"/><path d="M8 0h1v2H8zM10 1h2v1h-2zM9 3h2v2H9zM8 6h1v2H8zM11 5h1v3h-1zM0 8h2v1H0zM3 8h3v1H3zM2 10h2v2H2zM5 10h3v1H5zM9 9h3v2H9zM13 8h2v1h-2zM16 8h1v2h-1zM18 9h3v1h-3zM14 10h2v2h-2zM19 11h2v2h-2zM8 12h2v2H8zM11 12h2v1h-2zM12 14h2v2h-2zM8 15h3v1H8zM15 14h3v1h-3zM17 16h2v2h-2zM8 17h1v4H8zM10 18h3v1h-3zM14 17h2v1h-2zM11 20h3v1h-3zM15 19h1v2h-1zM19 19h2v2h-2zM20 15h1v2h-1z"/></svg><input type="file" accept="image/*" onChange="{{ lerFoto }}" style="display: none;" /></label>
+            <span style="flex-basis: 100%; font-size: 11px; color: #7A756C;">Código de barras: câmera · QR Code: foto ou print. Os dois leem boleto, Pix e nota fiscal.</span>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Ou cole aqui a linha digitável do boleto ou o Pix copia e cola</span>
+            <div style="display: flex; gap: 7px;">
+              <input value="{{ fBoleto }}" onChange="{{ setBoleto }}" placeholder="Números do boleto ou código Pix" style="flex: 1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+              <button type="button" onClick="{{ lerBoleto }}" style="border: 1px solid #1F4B3F; background: #FFFFFF; color: #1F4B3F; border-radius: 9px; padding: 8px 14px; font-weight: 700; cursor: pointer; white-space: nowrap;" style-hover="background: #1F4B3F; color: #F4F2EE;">Ler</button>
+            </div>
+          </div>
+          <sc-if value="{{ temMetas }}" hint-placeholder-val="{{ false }}">
+            <label style="grid-column: 1 / -1; display: block;">
+              <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Aporte para meta</span>
+              <select value="{{ fMeta }}" onChange="{{ setMeta }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+                <sc-for list="{{ opcoesMetas }}" as="o" hint-placeholder-count="2">
+                  <option value="{{ o.valor }}">{{ o.label }}</option>
+                </sc-for>
+              </select>
+            </label>
+          </sc-if>
+          <label style="grid-column: 1 / -1; display: block;">
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Usar conta cadastrada</span>
+            <select value="{{ fBill }}" onChange="{{ setBill }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+              <sc-for list="{{ opcoesBills }}" as="o" hint-placeholder-count="3">
+                <option value="{{ o.valor }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="grid-column: 1 / -1; display: block;">
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Descrição</span>
+            <input value="{{ fDesc }}" onChange="{{ setDesc }}" placeholder="Ex.: Salário Obras" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          </label>
+          <label>
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Valor</span>
+            <input value="{{ fValor }}" onChange="{{ setValor }}" placeholder="0,00" inputMode="decimal" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          </label>
+          <label>
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Data / vencimento</span>
+            <input type="date" value="{{ fDia }}" onChange="{{ setDia }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          </label>
+          <label>
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Tipo</span>
+            <select value="{{ fTipo }}" onChange="{{ setTipo }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+              <option value="saida">Saída</option>
+              <option value="entrada">Entrada</option>
+            </select>
+          </label>
+          <label>
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Categoria</span>
+            <select value="{{ fCat }}" onChange="{{ setCat }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+              <sc-for list="{{ nomesCategorias }}" as="o" hint-placeholder-count="6">
+                <option value="{{ o }}">{{ o }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <sc-if value="{{ naoEditando }}" hint-placeholder-val="{{ true }}">
+            <label>
+              <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Repetições (meses)</span>
+              <input value="{{ fRepetir }}" onChange="{{ setRepetir }}" inputMode="numeric" placeholder="1" title="{{ dicaRepetir }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+            </label>
+          </sc-if>
+          <label>
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Situação</span>
+            <select value="{{ fPago }}" onChange="{{ setPago }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+              <option value="nao">{{ labelPagoNao }}</option>
+              <option value="sim">{{ labelPagoSim }}</option>
+            </select>
+          </label>
+          <sc-if value="{{ editandoSerie }}" hint-placeholder-val="{{ false }}">
+            <label style="grid-column: 1 / -1;">
+              <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Aplicar a alteração a</span>
+              <select value="{{ fEscopo }}" onChange="{{ setEscopo }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+                <option value="um">Só este mês</option>
+                <option value="proximos">Este e os próximos meses da recorrência</option>
+              </select>
+            </label>
+          </sc-if>
+          <label style="grid-column: 1 / -1;">
+            <span style="display: block; font-size: 11px; color: #7A756C; margin-bottom: 4px;">Conta</span>
+            <select value="{{ fConta }}" onChange="{{ setConta }}" style="width: 100%; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+              <sc-for list="{{ nomesContas }}" as="o" hint-placeholder-count="2">
+                <option value="{{ o }}">{{ o }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <div style="grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 2px;">
+            <button type="submit" style="border: none; border-radius: 9px; padding: 9px 16px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;" style-hover="background: #2E6B58;">{{ botaoSalvar }}</button>
+            <sc-if value="{{ editando }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ cancelarEdicao }}" style="border: 1px solid #DCD7CD; border-radius: 9px; padding: 9px 16px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar</button>
+            </sc-if>
+          </div>
+          <p style="grid-column: 1 / -1; margin: 0; font-size: 11px; color: {{ corAviso }};">{{ avisoForm }}</p>
+        </form>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Lançamentos de {{ mesMinusculo }}</h2>
+          <div style="display: flex; gap: 5px;">
+            <sc-for list="{{ filtros }}" as="ft" hint-placeholder-count="3">
+              <button onClick="{{ ft.select }}" style="border: 1px solid {{ ft.borda }}; background: {{ ft.bg }}; color: {{ ft.fg }}; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 500; cursor: pointer;">{{ ft.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="margin-top: 4px;">
+          <sc-if value="{{ semLancamentos }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 8px 0 0; font-size: 12px; color: #7A756C;">Nenhum lançamento neste mês. Use o formulário ao lado.</p>
+          </sc-if>
+          <sc-for list="{{ lancamentos }}" as="l" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid #F1EDE5;">
+              <span style="width: 26px; height: 26px; border-radius: 9px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #FFFFFF; background: {{ l.cor }};">{{ l.inicial }}</span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.descricao }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ l.meta }}</div>
+              </div>
+              <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: {{ l.corValor }};">{{ l.valorFmt }}</div>
+              <div style="display: flex; gap: 4px; flex: none;">
+                <button onClick="{{ l.editar }}" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Editar</button>
+                <sc-if value="{{ l.temNota }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ l.abrirNota }}" title="Abrir a nota fiscal no site da Fazenda" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Nota</button>
+                </sc-if>
+                <button onClick="{{ l.excluir }}" style="border: 1px solid {{ l.bordaExcluir }}; background: {{ l.bgExcluir }}; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: {{ l.corExcluir }}; cursor: pointer;">{{ l.labelExcluir }}</button>
+                <sc-if value="{{ l.temSerie }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ l.excluirSerie }}" title="Excluir toda a recorrência" style="border: 1px solid {{ l.bordaSerie }}; background: {{ l.bgSerie }}; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: {{ l.corSerie }}; cursor: pointer;">{{ l.labelSerie }}</button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCadastros }}" hint-placeholder-val="{{ false }}">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 10px; align-items: start;">
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Categorias</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <sc-for list="{{ chipsCategorias }}" as="c" hint-placeholder-count="8">
+            <span style="display: inline-flex; align-items: center; gap: 7px; border: 1px solid #E7E2D9; border-radius: 999px; padding: 4px 8px 4px 10px; font-size: 12px;">
+              <span style="width: 9px; height: 9px; border-radius: 3px; background: {{ c.cor }};"></span>{{ c.nome }}
+              <button onClick="{{ c.editar }}" title="Editar categoria" style="border: none; background: none; color: #B8B2A7; font-size: 12px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #1F4B3F;">✎</button>
+              <button onClick="{{ c.remover }}" title="Remover categoria (clique duas vezes)" style="border: none; background: none; color: {{ c.corRemover }}; font-size: 14px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </span>
+          </sc-for>
+        </div>
+        <form onSubmit="{{ addCategoria }}" style="display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-top: 11px;">
+          <input value="{{ novaCatNome }}" onChange="{{ setNovaCatNome }}" placeholder="Nova categoria" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          <select value="{{ novaCatCor }}" onChange="{{ setNovaCatCor }}" style="border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+            <sc-for list="{{ paleta }}" as="p" hint-placeholder-count="5">
+              <option value="{{ p.valor }}">{{ p.nome }}</option>
+            </sc-for>
+          </select>
+          <button type="submit" style="border: none; border-radius: 9px; padding: 8px 13px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">{{ botaoCat }}</button>
+          <sc-if value="{{ editandoCat }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ cancelarCat }}" style="grid-column: 1 / -1; border: 1px solid #DCD7CD; border-radius: 9px; padding: 7px 13px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar edição</button>
+          </sc-if>
+        </form>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Contas e cartões</h2>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ contasCadastro }}" as="a" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+              <span style="width: 24px; height: 16px; border-radius: 4px; flex: none; background: {{ a.cor }};"></span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500;">{{ a.nome }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ a.tipo }}</div>
+              </div>
+              <button onClick="{{ a.editar }}" title="Editar conta" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Editar</button>
+              <button onClick="{{ a.remover }}" title="Remover conta (clique duas vezes)" style="border: none; background: none; color: {{ a.corRemover }}; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </div>
+          </sc-for>
+        </div>
+        <form onSubmit="{{ addConta }}" style="display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-top: 11px;">
+          <input value="{{ novaContaNome }}" onChange="{{ setNovaContaNome }}" placeholder="Nome" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          <input value="{{ novaContaInicial }}" onChange="{{ setNovaContaInicial }}" placeholder="Saldo inicial (opcional)" title="Saldo que a conta tinha antes do primeiro lançamento" inputMode="decimal" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <select value="{{ novaContaTipo }}" onChange="{{ setNovaContaTipo }}" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+            <option value="Conta bancária">Conta bancária</option>
+            <option value="Cartão de crédito">Cartão de crédito</option>
+            <option value="Carteira">Carteira</option>
+          </select>
+          <button type="submit" style="border: none; border-radius: 9px; padding: 8px 13px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">{{ botaoConta }}</button>
+          <sc-if value="{{ editandoConta }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ cancelarConta }}" style="grid-column: 1 / -1; border: 1px solid #DCD7CD; border-radius: 9px; padding: 7px 13px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar edição</button>
+          </sc-if>
+        </form>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Contas a pagar</h2>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ billsCadastro }}" as="b" hint-placeholder-count="2">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; padding: 8px 10px; border-radius: 10px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+              <div style="flex: 1 1 100%; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500;">{{ b.nome }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ b.diaLabel }}</div>
+              </div>
+              <div style="flex: 1; font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: #4A463F;">{{ b.valorFmt }}</div>
+              <button onClick="{{ b.lancar }}" title="Registrar a saída no mês selecionado" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer; white-space: nowrap;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Lançar no mês</button>
+              <button onClick="{{ b.editar }}" title="Editar conta a pagar" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Editar</button>
+              <button onClick="{{ b.remover }}" title="Remover (clique duas vezes)" style="border: none; background: none; color: {{ b.corRemover }}; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </div>
+          </sc-for>
+        </div>
+        <form onSubmit="{{ addBill }}" style="display: grid; grid-template-columns: 1fr 70px auto; gap: 7px; margin-top: 11px;">
+          <select value="{{ novoBillCat }}" onChange="{{ setNovoBillCat }}" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;">
+            <sc-for list="{{ nomesCategorias }}" as="o" hint-placeholder-count="6">
+              <option value="{{ o }}">{{ o }}</option>
+            </sc-for>
+          </select>
+          <input value="{{ novoBillNome }}" onChange="{{ setNovoBillNome }}" placeholder="Nome da conta a pagar" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          <input value="{{ novoBillValor }}" onChange="{{ setNovoBillValor }}" placeholder="0,00" inputMode="decimal" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <input value="{{ novoBillDia }}" onChange="{{ setNovoBillDia }}" placeholder="Dia" inputMode="numeric" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <button type="submit" style="border: none; border-radius: 9px; padding: 8px 13px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">{{ botaoBill }}</button>
+          <sc-if value="{{ editandoBill }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ cancelarBill }}" style="grid-column: 1 / -1; border: 1px solid #DCD7CD; border-radius: 9px; padding: 7px 13px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar edição</button>
+          </sc-if>
+        </form>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">A receber</h2>
+        <sc-if value="{{ semReceber }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0 0 10px; font-size: 12px; color: #7A756C;">Nada pendente.</p>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ receberLista }}" as="r" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500;">{{ r.nome }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ r.dataLabel }}</div>
+              </div>
+              <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: #C9A227;">{{ r.valorFmt }}</div>
+              <button onClick="{{ r.receber }}" title="Lançar como entrada no mês selecionado" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer; white-space: nowrap;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Recebido</button>
+              <button onClick="{{ r.editar }}" title="Editar" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Editar</button>
+              <button onClick="{{ r.remover }}" title="Remover (clique duas vezes)" style="border: none; background: none; color: {{ r.corRemover }}; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </div>
+          </sc-for>
+        </div>
+        <form onSubmit="{{ addReceber }}" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 7px; margin-top: 11px;">
+          <input value="{{ novoRecNome }}" onChange="{{ setNovoRecNome }}" placeholder="De quem / o quê" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          <input value="{{ novoRecValor }}" onChange="{{ setNovoRecValor }}" placeholder="0,00" inputMode="decimal" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <input type="date" value="{{ novoRecData }}" onChange="{{ setNovoRecData }}" title="Data prevista (opcional). Sem data, conta no mês atual." style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <button type="submit" style="border: none; border-radius: 9px; padding: 8px 13px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">{{ botaoRec }}</button>
+          <sc-if value="{{ editandoRec }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ cancelarRec }}" style="grid-column: 1 / -1; border: 1px solid #DCD7CD; border-radius: 9px; padding: 7px 13px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar edição</button>
+          </sc-if>
+        </form>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Recorrências</h2>
+        <sc-if value="{{ semSeries }}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #7A756C;">Nenhuma recorrência. Na aba Lançar, informe em "Repetições (meses)" por quantos meses o lançamento deve se repetir.</p>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ series }}" as="r" hint-placeholder-count="0">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+              <span style="width: 9px; height: 9px; border-radius: 3px; flex: none; background: {{ r.cor }};"></span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500;">{{ r.nome }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ r.detalhe }}</div>
+              </div>
+              <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: {{ r.corValor }};">{{ r.valorFmt }}</div>
+              <button onClick="{{ r.remover }}" title="Excluir recorrência (clique duas vezes)" style="border: none; background: none; color: {{ r.corRemover }}; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <h2 style="margin: 0 0 10px; font-size: 14px; font-weight: 700;">Metas</h2>
+        <sc-if value="{{ semMetas }}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0 0 10px; font-size: 12px; color: #7A756C;">Nenhuma meta cadastrada.</p>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ metasCadastro }}" as="g" hint-placeholder-count="0">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; background: #FBFAF7; border: 1px solid #F1EDE5;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; font-weight: 500;">{{ g.nome }}</div>
+                <div style="font-size: 11px; color: #7A756C;">{{ g.progresso }}</div>
+              </div>
+              <button onClick="{{ g.editar }}" title="Editar meta" style="border: 1px solid #DCD7CD; background: #FFFFFF; border-radius: 7px; padding: 4px 8px; font-size: 11px; color: #4A463F; cursor: pointer;" style-hover="border-color: #1F4B3F; color: #1F4B3F;">Editar</button>
+              <button onClick="{{ g.remover }}" title="Remover meta (clique duas vezes)" style="border: none; background: none; color: {{ g.corRemover }}; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px;" style-hover="color: #B2482F;">×</button>
+            </div>
+          </sc-for>
+        </div>
+        <form onSubmit="{{ addMeta }}" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 7px; margin-top: 11px;">
+          <input value="{{ novaMetaNome }}" onChange="{{ setNovaMetaNome }}" placeholder="Meta" style="grid-column: 1 / -1; min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; background: #FBFAF7;" />
+          <input value="{{ novaMetaAtual }}" onChange="{{ setNovaMetaAtual }}" placeholder="Guardado inicial" title="Valor que já estava guardado antes dos aportes" inputMode="decimal" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <input value="{{ novaMetaAlvo }}" onChange="{{ setNovaMetaAlvo }}" placeholder="Alvo" inputMode="decimal" style="min-width: 0; border: 1px solid #DCD7CD; border-radius: 9px; padding: 8px 10px; font-family: 'DM Mono', monospace; background: #FBFAF7;" />
+          <button type="submit" style="border: none; border-radius: 9px; padding: 8px 13px; font-weight: 700; color: #F4F2EE; background: #1F4B3F; cursor: pointer;">{{ botaoMeta }}</button>
+          <sc-if value="{{ editandoMeta }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ cancelarMeta }}" style="grid-column: 1 / -1; border: 1px solid #DCD7CD; border-radius: 9px; padding: 7px 13px; background: #FFFFFF; color: #4A463F; cursor: pointer;">Cancelar edição</button>
+          </sc-if>
+        </form>
+      </section>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isRelatorios }}" hint-placeholder-val="{{ false }}">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start;">
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Resumo de {{ mesMinusculo }}</h2>
+          <span style="font-size: 12px; color: #7A756C;">{{ sobraLabel }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px;">
+          <div style="background: #FBFAF7; border: 1px solid #F1EDE5; border-radius: 11px; padding: 10px 11px;">
+            <div style="font-size: 11px; color: #7A756C;">Entradas</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 15px; color: #1F4B3F; margin-top: 3px; white-space: nowrap;">{{ entradasFmt }}</div>
+          </div>
+          <div style="background: #FBFAF7; border: 1px solid #F1EDE5; border-radius: 11px; padding: 10px 11px;">
+            <div style="font-size: 11px; color: #7A756C;">Saídas</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 15px; color: #B2482F; margin-top: 3px; white-space: nowrap;">{{ saidasFmt }}</div>
+          </div>
+          <div style="background: #FBFAF7; border: 1px solid #F1EDE5; border-radius: 11px; padding: 10px 11px;">
+            <div style="font-size: 11px; color: #7A756C;">Saldo</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 15px; margin-top: 3px; white-space: nowrap;">{{ saldoFmt }}</div>
+          </div>
+        </div>
+        <p style="margin: 9px 0 0; font-size: 11px; color: #7A756C;">{{ comparativo }}</p>
+        <h3 style="margin: 14px 0 9px; font-size: 12px; font-weight: 700; color: #4A463F;">Gastos por categoria</h3>
+        <sc-if value="{{ semGastos }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 12px; color: #7A756C;">Nenhuma saída lançada neste mês.</p>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 9px;">
+          <sc-for list="{{ categorias }}" as="c" hint-placeholder-count="4">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px;">
+                <span style="display: inline-flex; align-items: center; gap: 7px; font-weight: 500;"><span style="width: 9px; height: 9px; border-radius: 3px; display: inline-block; background: {{ c.cor }};"></span>{{ c.nome }}</span>
+                <span style="font-family: 'DM Mono', monospace; color: #4A463F;">{{ c.valorFmt }} · {{ c.share }}</span>
+              </div>
+              <div style="height: 7px; background: #F1EDE5; border-radius: 999px; margin-top: 5px; overflow: hidden;">
+                <div style="height: 100%; border-radius: 999px; background: {{ c.cor }}; width: {{ c.pct }};"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ temAportes }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 10px 0 0; font-size: 11px; color: #7A756C;">{{ aportesNota }}</p>
+        </sc-if>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Extrato</h2>
+          <select value="{{ relCat }}" onChange="{{ setRelCat }}" style="border: 1px solid #DCD7CD; border-radius: 9px; padding: 5px 9px; background: #FBFAF7;">
+            <sc-for list="{{ opcoesRelatorio }}" as="o" hint-placeholder-count="6">
+              <option value="{{ o }}">{{ o }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <div style="margin-top: 4px;">
+          <sc-if value="{{ semExtrato }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 8px 0 0; font-size: 12px; color: #7A756C;">Nenhum lançamento para este filtro.</p>
+          </sc-if>
+          <sc-for list="{{ extrato }}" as="l" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #F1EDE5;">
+              <span style="width: 9px; height: 9px; border-radius: 3px; flex: none; background: {{ l.cor }};"></span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.descricao }}</div>
+              </div>
+              <div style="font-size: 11px; color: #7A756C; white-space: nowrap;">{{ l.meta }}</div>
+              <div style="font-family: 'DM Mono', monospace; font-size: 13px; white-space: nowrap; color: {{ l.corValor }};">{{ l.valorFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="grid-column: 1 / -1; background: #FFFFFF; border: 1px solid #E7E2D9; border-radius: 14px; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <h2 style="margin: 0; font-size: 14px; font-weight: 700;">Resumo de {{ ano }}</h2>
+          <span style="font-size: 12px; color: #7A756C;">{{ anualTotal }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 1fr 1fr; gap: 8px; margin-top: 12px; padding: 0 8px 6px; font-size: 11px; color: #7A756C; border-bottom: 1px solid #F1EDE5;">
+          <span>Mês</span><span style="text-align: right;">Entradas</span><span style="text-align: right;">Saídas</span><span style="text-align: right;">Saldo</span>
+        </div>
+        <sc-for list="{{ anual }}" as="m" hint-placeholder-count="12">
+          <button onClick="{{ m.abrir }}" title="Abrir este mês" style="display: block; width: 100%; border: none; border-bottom: 1px solid #F1EDE5; background: {{ m.bg }}; padding: 7px 8px; cursor: pointer; text-align: left; color: #1A1A1A;">
+            <span style="display: grid; grid-template-columns: 44px 1fr 1fr 1fr; gap: 8px; align-items: baseline; font-size: 12px;">
+              <span style="font-weight: 500;">{{ m.label }}</span>
+              <span style="font-family: 'DM Mono', monospace; text-align: right; color: #1F4B3F; white-space: nowrap;">{{ m.entFmt }}</span>
+              <span style="font-family: 'DM Mono', monospace; text-align: right; color: #B2482F; white-space: nowrap;">{{ m.saiFmt }}</span>
+              <span style="font-family: 'DM Mono', monospace; text-align: right; color: {{ m.corSaldo }}; white-space: nowrap;">{{ m.saldoFmt }}</span>
+            </span>
+            <span style="display: flex; gap: 3px; margin-top: 4px; margin-left: 52px;">
+              <span style="height: 4px; border-radius: 999px; background: #1F4B3F; width: {{ m.wEnt }};"></span>
+            </span>
+            <span style="display: flex; gap: 3px; margin-top: 2px; margin-left: 52px;">
+              <span style="height: 4px; border-radius: 999px; background: #E2B4A5; width: {{ m.wSai }};"></span>
+            </span>
+          </button>
+        </sc-for>
+      </section>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#1F4B3F&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#1F4B3F&quot;,&quot;#2B4C8C&quot;,&quot;#8A3324&quot;,&quot;#1A1A1A&quot;]}}">
+class Component extends DCLogic {
+  get hoje() { return new Date().getDate(); }
+  get mesAtual() { return ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][new Date().getMonth()]; }
+  get anoAtual() { return new Date().getFullYear(); }
+
+  state = {
+    aba: "Painel",
+    mes: ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][new Date().getMonth()],
+    privado: false,
+    filtro: "Tudo",
+    confirmId: null,
+    confirmKey: null,
+    ultimoBackup: "",
+    diaRef: "",
+    aviso: "",
+    avisoErro: false,
+    form: { id: null, desc: "", valor: "", dia: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10), tipo: "saida", cat: "Mercado", conta: "Conta corrente", repetir: "1", bill: "", boleto: "", meta: "", escopo: "um" },
+    txs: [],
+    podeInstalar: false,
+    boasVindas: false,
+    calHorizonte: "3",
+    calModo: "novos",
+    calUltimo: "",
+    cats: [
+      { nome: "Moradia", cor: "#2B6A8F" }, { nome: "Mercado", cor: "#1F4B3F" },
+      { nome: "Transporte", cor: "#C9A227" }, { nome: "Saúde", cor: "#7A4E9B" },
+      { nome: "Lazer", cor: "#D97742" }, { nome: "Educação", cor: "#3F7F5F" },
+      { nome: "Dívidas", cor: "#B2482F" }, { nome: "Salário", cor: "#1F4B3F" },
+      { nome: "Outros", cor: "#8A857B" },
+    ],
+    contas: [{ nome: "Conta corrente", tipo: "Conta bancária", cor: "#1F4B3F", inicial: 0 }],
+    bills: [],
+    metas: [],
+    receber: [],
+    novaCat: { nome: "", cor: "#2B6A8F", orig: null },
+    novaConta: { nome: "", tipo: "Conta bancária", inicial: "", orig: null },
+    novoBill: { id: null, nome: "", valor: "", dia: "", cat: "Moradia" },
+    novoRec: { nome: "", valor: "", data: "", idx: null },
+    novaMeta: { nome: "", atual: "", alvo: "" },
+    relCat: "Todas as categorias",
+    ano: new Date().getFullYear(),
+    statusTexto: "",
+    statusErro: false,
+    nomeArquivo: "",
+  };
+
+  paleta = [
+    { nome: "Verde", valor: "#1F4B3F" }, { nome: "Azul", valor: "#2B6A8F" },
+    { nome: "Dourado", valor: "#C9A227" }, { nome: "Laranja", valor: "#D97742" },
+    { nome: "Roxo", valor: "#7A4E9B" }, { nome: "Vermelho", valor: "#B2482F" },
+  ];
+
+  CHAVE = "controle-financeiro-v1";
+
+  campos = ["txs", "cats", "contas", "bills", "metas", "receber"];
+
+  normalizar(novo) {
+    if (Array.isArray(novo.txs)) {
+      const bills = Array.isArray(novo.bills) ? novo.bills : (this.state.bills || []);
+      novo.txs = novo.txs.map(t => {
+        if (t.tipo !== "saida") {
+          if (typeof t.pago === "boolean") return t;
+          const MS0 = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+          const venc = Date.UTC(t.ano || this.anoAtual, MS0.indexOf(t.mes), t.dia || 1);
+          const hj = Date.UTC(this.anoAtual, new Date().getMonth(), this.hoje);
+          return { ...t, pago: venc <= hj };
+        }
+        if (t.pago === true && !t.pagoEm) {
+          const MS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+          const mi = MS.indexOf(t.mes);
+          if (mi >= 0) return { ...t, pagoEm: (t.ano || this.anoAtual) + "-" + String(mi + 1).padStart(2, "0") + "-" + String(t.dia || 1).padStart(2, "0") };
+        }
+        if (typeof t.pago === "boolean") return t;
+        const b = t.bill ? bills.find(x => x.id === t.bill) : null;
+        const comp = (t.ano || this.anoAtual) + "-" + t.mes;
+        return { ...t, pago: !!(b && Array.isArray(b.pagas) && b.pagas.indexOf(comp) !== -1) };
+      });
+    }
+    return novo;
+  }
+
+  componentDidMount() {
+    try {
+      const bruto = localStorage.getItem(this.CHAVE);
+      if (bruto) {
+        const dados = JSON.parse(bruto);
+        const novo = {};
+        this.campos.forEach(k => { if (Array.isArray(dados[k])) novo[k] = dados[k]; });
+        if (Array.isArray(novo.bills)) {
+          novo.bills = novo.bills.map(x => {
+            if (Array.isArray(x.pagas)) return x;
+            const m = { ...x, pagas: x.paga ? [this.anoAtual + "-" + this.mesAtual] : [] };
+            delete m.paga;
+            return m;
+          });
+        }
+        if (Array.isArray(novo.txs) && Array.isArray(novo.bills)) {
+          novo.txs = novo.txs.map(t => {
+            if (t.bill || t.tipo !== "saida") return t;
+            const base = String(t.desc).replace(/\s*\(\d+\/\d+\)$/, "").trim().toLowerCase();
+            const b = novo.bills.find(x => x.nome.trim().toLowerCase() === base);
+            return b ? { ...t, bill: b.id } : t;
+          });
+        }
+        if (Object.keys(novo).length) this.setState(this.normalizar(novo));
+      }
+    } catch (err) { /* dados corrompidos: mantém o padrão */ }
+    try {
+      const ub = localStorage.getItem(this.CHAVE + "-backup");
+      if (ub) this.setState({ ultimoBackup: ub });
+      if (!localStorage.getItem(this.CHAVE + "-boas-vindas")) this.setState({ boasVindas: true });
+      const cal = JSON.parse(localStorage.getItem(this.CHAVE + "-calendario") || "null");
+      if (cal && cal.em) this.setState({ calUltimo: cal.em });
+    } catch (err) { /* sem armazenamento */ }
+    // Pede ao navegador para não apagar os dados quando faltar espaço.
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (err) { /* sem suporte */ }
+    this._instalavel = () => this.setState({ podeInstalar: !!window.__convite });
+    window.addEventListener("cf-instalavel", this._instalavel);
+    window.addEventListener("appinstalled", () => { window.__convite = null; this.setState({ podeInstalar: false }); });
+    if (window.__convite) this.setState({ podeInstalar: true });
+    this._diaRef = new Date().toDateString();
+    this._relogio = setInterval(() => {
+      const d = new Date().toDateString();
+      if (d !== this._diaRef) { this._diaRef = d; this.setState({ diaRef: d }); }
+    }, 60000);
+    this.montado = true;
+    if (this.suportaFS()) {
+      this.lerHandle().then(h => { if (h) { this.handle = h; this.setState({ nomeArquivo: h.name }); } });
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("cf-instalavel", this._instalavel);
+    clearInterval(this._relogio);
+    clearTimeout(this._st);
+  }
+
+  componentDidUpdate(_, prev) {
+    this.persistir();
+    if (this.state.statusTexto && this.state.statusTexto !== prev.statusTexto) {
+      clearTimeout(this._st);
+      this._st = setTimeout(() => this.setState({ statusTexto: "", confirmKey: null }), 4000);
+    }
+  }
+
+  marcarBackup() {
+    const agora = new Date().toISOString();
+    try { localStorage.setItem(this.CHAVE + "-backup", agora); } catch (err) { /* sem armazenamento */ }
+    this.setState({ ultimoBackup: agora });
+  }
+
+  persistir() {
+    if (!this.montado) return;
+    try {
+      const dados = {};
+      this.campos.forEach(k => { dados[k] = this.state[k]; });
+      localStorage.setItem(this.CHAVE, JSON.stringify({ versao: 1, salvoEm: new Date().toISOString(), ...dados }));
+    } catch (err) { /* cota cheia */ }
+  }
+
+  suportaFS() { return typeof window !== "undefined" && !!window.showSaveFilePicker; }
+
+  idb() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open("cf-arquivo", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("h");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+
+  async guardarHandle(h) {
+    try {
+      const db = await this.idb();
+      await new Promise(res => {
+        const tx = db.transaction("h", "readwrite");
+        tx.objectStore("h").put(h, "arquivo");
+        tx.oncomplete = res; tx.onerror = res;
+      });
+    } catch (err) { /* sem indexedDB */ }
+  }
+
+  async lerHandle() {
+    try {
+      const db = await this.idb();
+      return await new Promise(res => {
+        const tx = db.transaction("h", "readonly");
+        const rq = tx.objectStore("h").get("arquivo");
+        rq.onsuccess = () => res(rq.result || null);
+        rq.onerror = () => res(null);
+      });
+    } catch (err) { return null; }
+  }
+
+  pacote() {
+    const dados = { versao: 1, salvoEm: new Date().toISOString() };
+    this.campos.forEach(k => { dados[k] = this.state[k]; });
+    return JSON.stringify(dados, null, 2);
+  }
+
+  aplicar(dados, origem) {
+    const novo = {};
+    this.campos.forEach(k => { if (Array.isArray(dados[k])) novo[k] = dados[k]; });
+    if (!Object.keys(novo).length) { this.status("Arquivo sem dados reconhecíveis.", true); return false; }
+    this.setState({ ...this.normalizar(novo), confirmId: null, aviso: "" });
+    this.status("Dados abertos de " + origem + ".");
+    return true;
+  }
+
+  async gravarNoArquivo(handle) {
+    const perm = await handle.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") throw new Error("sem permissão");
+    const w = await handle.createWritable();
+    await w.write(this.pacote());
+    await w.close();
+    this.marcarBackup();
+  }
+
+  // No celular, abre o menu de compartilhar (WhatsApp, Drive, e-mail…); senão, baixa o arquivo.
+  async compartilharBackup() {
+    const nome = "controle-financeiro-" + new Date().toISOString().slice(0, 10) + ".json";
+    try {
+      const arquivo = new File([this.pacote()], nome, { type: "application/json" });
+      if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+        await navigator.share({ files: [arquivo], title: "Backup do controle financeiro" });
+        this.marcarBackup();
+        return "Backup compartilhado (" + nome + "). Guarde esse arquivo em um lugar seguro.";
+      }
+    } catch (err) {
+      if (err && err.name === "AbortError") return "";
+    }
+    return "Backup salvo em " + this.baixarJson() + ".";
+  }
+
+  baixarJson() {
+    const blob = new Blob([this.pacote()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "controle-financeiro-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    this.marcarBackup();
+    return a.download;
+  }
+
+  BANCOS = { "001": "Banco do Brasil", "033": "Santander", "041": "Banrisul", "070": "BRB", "077": "Banco Inter", "104": "Caixa", "212": "Banco Original", "237": "Bradesco", "260": "Nubank", "336": "C6 Bank", "341": "Itaú", "422": "Safra", "745": "Citibank", "748": "Sicredi", "756": "Sicoob" };
+
+  mod10(str) {
+    let soma = 0, peso = 2;
+    for (let i = str.length - 1; i >= 0; i--) {
+      const p = Number(str[i]) * peso;
+      soma += p > 9 ? p - 9 : p;
+      peso = peso === 2 ? 1 : 2;
+    }
+    return (10 - (soma % 10)) % 10;
+  }
+
+  mod11(str) {
+    let soma = 0, peso = 2;
+    for (let i = str.length - 1; i >= 0; i--) {
+      soma += Number(str[i]) * peso;
+      peso = peso === 9 ? 2 : peso + 1;
+    }
+    const r = soma % 11;
+    return r === 0 || r === 1 ? 0 : 11 - r;
+  }
+
+  lerLinhaDigitavel(bruto) {
+    const s = String(bruto).replace(/\D/g, "");
+    const ERRO_DV = "Algum número parece errado (o dígito verificador não confere). Confira a linha digitável.";
+    if (s.length === 48) {
+      if (s[0] !== "8") return { erro: "Essa linha de 48 números não parece um boleto de concessionária ou tributo." };
+      const ref = s[2];
+      if ("6789".indexOf(ref) === -1) return { erro: "Não reconheci o tipo desse boleto." };
+      const dv = ref === "6" || ref === "7" ? b => this.mod10(b) : b => this.mod11(b);
+      for (let i = 0; i < 4; i++) {
+        if (dv(s.slice(i * 12, i * 12 + 11)) !== Number(s[i * 12 + 11])) return { erro: ERRO_DV };
+      }
+      if (ref === "7" || ref === "9") return { erro: "Esse boleto não traz o valor em reais na linha digitável. Informe o valor à mão." };
+      const barra = s.slice(0, 11) + s.slice(12, 23) + s.slice(24, 35) + s.slice(36, 47);
+      const valor = parseInt(barra.slice(4, 15), 10) / 100;
+      if (!isFinite(valor) || valor <= 0) return { erro: "Não consegui ler o valor desse boleto." };
+      const SEG = { "1": "Prefeitura", "2": "Água e saneamento", "3": "Energia elétrica / gás", "4": "Telefone / internet", "5": "Órgão do governo", "6": "Carnê", "7": "Multa de trânsito" };
+      const cat = { "2": "Moradia", "3": "Moradia", "4": "Moradia", "7": "Transporte" }[s[1]] || "";
+      return { valor, nome: SEG[s[1]] ? "Conta · " + SEG[s[1]] : "Boleto de concessionária", venc: null, cat };
+    }
+    if (s.length !== 47) return { erro: "A linha digitável precisa ter 47 ou 48 números." };
+    if (this.mod10(s.slice(0, 9)) !== Number(s[9]) || this.mod10(s.slice(10, 20)) !== Number(s[20]) || this.mod10(s.slice(21, 31)) !== Number(s[31])) return { erro: ERRO_DV };
+    const banco = s.slice(0, 3);
+    const fator = parseInt(s.slice(33, 37), 10);
+    const valor = parseInt(s.slice(37, 47), 10) / 100;
+    if (!isFinite(valor) || valor <= 0) return { erro: "Não consegui ler o valor desse boleto." };
+    let venc = null;
+    if (fator >= 1000) {
+      let d = new Date(Date.UTC(1997, 9, 7));
+      d.setUTCDate(d.getUTCDate() + fator);
+      if (d < new Date(Date.UTC(2025, 1, 22))) {
+        d = new Date(Date.UTC(2025, 1, 22));
+        d.setUTCDate(d.getUTCDate() + (fator - 1000));
+      }
+      venc = d;
+    }
+    return { valor, venc, nome: "Boleto " + (this.BANCOS[banco] || "banco " + banco) };
+  }
+
+  // Código de barras do boleto (44 números) → linha digitável (47 ou 48), conferindo o dígito geral.
+  barrasParaLinha(b) {
+    if (!/^\d{44}$/.test(b)) return null;
+    if (b[0] === "8") {
+      const ref = b[2];
+      if ("6789".indexOf(ref) === -1) return null;
+      const dv = ref === "6" || ref === "7" ? x => this.mod10(x) : x => this.mod11(x);
+      if (dv(b.slice(0, 3) + b.slice(4)) !== Number(b[3])) return null;
+      let linha = "";
+      for (let i = 0; i < 4; i++) { const bloco = b.slice(i * 11, i * 11 + 11); linha += bloco + dv(bloco); }
+      return linha;
+    }
+    // Bancário: dígito geral (posição 5) pelo módulo 11.
+    const semDv = b.slice(0, 4) + b.slice(5);
+    let soma = 0, peso = 2;
+    for (let i = semDv.length - 1; i >= 0; i--) { soma += Number(semDv[i]) * peso; peso = peso === 9 ? 2 : peso + 1; }
+    let dvg = 11 - (soma % 11);
+    if (dvg === 0 || dvg === 10 || dvg === 11) dvg = 1;
+    if (dvg !== Number(b[4])) return null;
+    const livre = b.slice(19);
+    const c1 = b.slice(0, 4) + livre.slice(0, 5), c2 = livre.slice(5, 15), c3 = livre.slice(15, 25);
+    return c1 + this.mod10(c1) + c2 + this.mod10(c2) + c3 + this.mod10(c3) + b[4] + b.slice(5, 19);
+  }
+
+  crc16(str) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+    }
+    return crc.toString(16).toUpperCase().padStart(4, "0");
+  }
+
+  // Pix (BR Code): formato EMV "000201…6304XXXX".
+  lerPix(texto) {
+    const t = String(texto).trim();
+    if (!/^000201/.test(t)) return null;
+    const campos = {};
+    let i = 0;
+    while (i + 4 <= t.length) {
+      const id = t.slice(i, i + 2), n = parseInt(t.slice(i + 2, i + 4), 10);
+      if (!isFinite(n)) break;
+      campos[id] = t.slice(i + 4, i + 4 + n);
+      i += 4 + n;
+    }
+    const pos = t.lastIndexOf("6304");
+    if (pos === -1 || this.crc16(t.slice(0, pos + 4)) !== t.slice(pos + 4, pos + 8).toUpperCase()) return { erro: "O código Pix parece incompleto ou foi lido com erro. Tente de novo." };
+    const titulo = x => String(x || "").toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()).trim();
+    const valor = campos["54"] ? parseFloat(campos["54"]) : null;
+    return { tipo: "pix", nome: campos["59"] ? "Pix · " + titulo(campos["59"]) : "Pagamento Pix", valor: valor && valor > 0 ? valor : null, cidade: titulo(campos["60"]) };
+  }
+
+  // NFC-e (cupom fiscal): QR com link da Secretaria da Fazenda.
+  lerNfce(texto) {
+    const t = String(texto).trim();
+    if (!/^https?:\/\//i.test(t)) return null;
+    let url;
+    try { url = new URL(t); } catch (err) { return null; }
+    const p = url.searchParams.get("p") || url.searchParams.get("P");
+    let chave = "", valor = null, dia = null;
+    if (p) {
+      const partes = p.split("|");
+      chave = (partes[0] || "").replace(/\D/g, "");
+      if (partes.length >= 8) { dia = parseInt(partes[3], 10) || null; valor = parseFloat(String(partes[4]).replace(",", ".")) || null; }
+    } else {
+      chave = (url.searchParams.get("chNFe") || "").replace(/\D/g, "");
+      const v = url.searchParams.get("vNF");
+      if (v) valor = parseFloat(v.replace(",", ".")) || null;
+      const dh = url.searchParams.get("dhEmi");
+      if (dh) {
+        try { const txt = dh.match(/../g).map(h => String.fromCharCode(parseInt(h, 16))).join(""); const d = parseInt(txt.slice(8, 10), 10); if (d) dia = d; } catch (err) { /* ignorado */ }
+      }
+    }
+    if (chave.length !== 44 || chave.slice(20, 22) !== "65") return { tipo: "link", url: t };
+    const ano = 2000 + parseInt(chave.slice(2, 4), 10), mes = parseInt(chave.slice(4, 6), 10) - 1;
+    const numero = String(parseInt(chave.slice(25, 34), 10));
+    return { tipo: "nfce", url: t, valor, ano, mes, dia, nome: "Compra · cupom fiscal nº " + numero };
+  }
+
+  // Interpreta o texto de qualquer código lido ou colado.
+  interpretarCodigo(texto) {
+    const t = String(texto || "").trim();
+    if (!t) return { erro: "Nada para ler. Escaneie um código ou cole os números." };
+    const pix = this.lerPix(t);
+    if (pix) return pix;
+    const nf = this.lerNfce(t);
+    if (nf) return nf;
+    const num = t.replace(/[\s.\-]/g, "");
+    if (/^\d{44}$/.test(num)) {
+      const linha = this.barrasParaLinha(num);
+      if (!linha) return { erro: "O código de barras foi lido com erro. Tente de novo, com o código bem iluminado e reto na tela." };
+      return { tipo: "boleto", linha, ...this.lerLinhaDigitavel(linha) };
+    }
+    if (/^[\d\s.\-]+$/.test(t)) {
+      const r = this.lerLinhaDigitavel(t);
+      return r.erro ? r : { tipo: "boleto", linha: t.replace(/\D/g, ""), ...r };
+    }
+    return { erro: "Li o código, mas ele não é de boleto, Pix nem nota fiscal." };
+  }
+
+  // Biblioteca de leitura para aparelhos sem leitor nativo (iPhone, Firefox).
+  carregarZXing() {
+    if (window.ZXing) return Promise.resolve(window.ZXing);
+    if (!this._zx) {
+      this._zx = new Promise((res, rej) => {
+        const sc = document.createElement("script");
+        sc.src = "./vendor/zxing.min.js";
+        sc.onload = () => res(window.ZXing);
+        sc.onerror = () => { this._zx = null; rej(new Error("zxing")); };
+        document.head.appendChild(sc);
+      });
+    }
+    return this._zx;
+  }
+
+  async leitorNativo() {
+    if (!("BarcodeDetector" in window)) return null;
+    try {
+      const fmts = await window.BarcodeDetector.getSupportedFormats();
+      if (fmts.indexOf("qr_code") === -1 || fmts.indexOf("itf") === -1) return null;
+      return new window.BarcodeDetector({ formats: ["qr_code", "itf"] });
+    } catch (err) { return null; }
+  }
+
+  dicasZXing(ZX) {
+    const h = new Map();
+    h.set(ZX.DecodeHintType.POSSIBLE_FORMATS, [ZX.BarcodeFormat.QR_CODE, ZX.BarcodeFormat.ITF]);
+    h.set(ZX.DecodeHintType.TRY_HARDER, true);
+    return h;
+  }
+
+  // Um texto lido "serve" quando é um código que o app entende (evita aceitar leitura com erro).
+  leituraValida(texto) {
+    const r = this.interpretarCodigo(texto);
+    return !r.erro || /^000201/.test(String(texto).trim());
+  }
+
+  async lerImagem(arquivo) {
+    let img;
+    try { img = await createImageBitmap(arquivo); }
+    catch (err) {
+      img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(arquivo); });
+    }
+    const nativo = await this.leitorNativo();
+    const ZX = nativo ? null : await this.carregarZXing();
+    const largura = img.width, altura = img.height;
+    for (const maxLado of [1600, 2600, 1000]) {
+      for (const giro of [0, 90]) {
+        const esc = Math.min(1, maxLado / Math.max(largura, altura));
+        const w = Math.round(largura * esc), hh = Math.round(altura * esc);
+        const cv = document.createElement("canvas");
+        cv.width = giro ? hh : w; cv.height = giro ? w : hh;
+        const ctx = cv.getContext("2d");
+        if (giro) { ctx.translate(hh, 0); ctx.rotate(Math.PI / 2); }
+        ctx.drawImage(img, 0, 0, w, hh);
+        try {
+          if (nativo) {
+            const achados = await nativo.detect(cv);
+            const bom = achados.find(a => this.leituraValida(a.rawValue));
+            if (bom) return bom.rawValue;
+            if (achados[0]) return achados[0].rawValue;
+          } else {
+            const fonte = new ZX.HTMLCanvasElementLuminanceSource(cv);
+            const leitor = new ZX.MultiFormatReader();
+            leitor.setHints(this.dicasZXing(ZX));
+            const r = leitor.decode(new ZX.BinaryBitmap(new ZX.HybridBinarizer(fonte)));
+            if (r && r.getText()) return r.getText();
+          }
+        } catch (err) { /* tenta o próximo tamanho/ângulo */ }
+      }
+    }
+    return null;
+  }
+
+  // Tela cheia com a câmera; chama aoLer(texto) quando reconhece um código.
+  async abrirScanner(aoLer, aoErro) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      aoErro("Este navegador não libera a câmera aqui. Use \"Ler de uma foto\".");
+      return;
+    }
+    const ov = document.createElement("div");
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-label", "Escanear código");
+    ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;font-family:'DM Sans',system-ui,sans-serif;color:#F4F2EE;";
+    ov.innerHTML =
+      '<div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;">' +
+        '<strong style="font-size:15px;">Escanear código</strong>' +
+        '<span style="display:flex;gap:8px;"><button data-luz type="button" style="display:none;border:1px solid #F4F2EE55;background:none;color:#F4F2EE;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;">Lanterna</button>' +
+        '<button data-fechar type="button" style="border:none;background:#F4F2EE;color:#1A1A1A;border-radius:999px;padding:7px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">Fechar</button></span>' +
+      '</div>' +
+      '<div style="position:relative;flex:1;overflow:hidden;">' +
+        '<video playsinline muted autoplay style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>' +
+        '<div style="position:absolute;left:8%;right:8%;top:30%;bottom:30%;border:3px solid #C9A227;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);"></div>' +
+        '<div style="position:absolute;left:10%;right:10%;top:50%;height:2px;background:#E2B4A5;opacity:.8;"></div>' +
+      '</div>' +
+      '<p data-msg style="flex:none;margin:0;padding:14px 18px calc(16px + env(safe-area-inset-bottom,0px));font-size:13px;line-height:1.5;text-align:center;">Aponte para o QR Code ou para o código de barras.<br>Boleto: deixe o código de barras de lado a lado no quadro, bem iluminado. Se não ler, gire o celular na horizontal.</p>';
+    document.body.appendChild(ov);
+    const video = ov.querySelector("video");
+    const msg = ov.querySelector("[data-msg]");
+    let stream = null, ativo = true, leitorZX = null;
+    const fechar = () => {
+      ativo = false;
+      try { if (leitorZX) leitorZX.reset(); } catch (err) { /* ignorado */ }
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      ov.remove();
+    };
+    const terminar = texto => {
+      if (!ativo) return;
+      try { if (navigator.vibrate) navigator.vibrate(80); } catch (err) { /* ignorado */ }
+      fechar();
+      aoLer(texto);
+    };
+    ov.querySelector("[data-fechar]").onclick = fechar;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } });
+    } catch (err) {
+      fechar();
+      aoErro(err && err.name === "NotAllowedError"
+        ? "A câmera foi bloqueada. Libere o acesso à câmera nas configurações do navegador ou use \"Ler de uma foto\"."
+        : "Não consegui abrir a câmera. Use \"Ler de uma foto\".");
+      return;
+    }
+    if (!ativo) { stream.getTracks().forEach(t => t.stop()); return; }
+    video.srcObject = stream;
+    try { await video.play(); } catch (err) { /* autoplay bloqueado: o vídeo começa ao tocar */ }
+    const trilha = stream.getVideoTracks()[0];
+    try {
+      const cap = trilha.getCapabilities ? trilha.getCapabilities() : {};
+      if (cap.torch) {
+        const b = ov.querySelector("[data-luz]");
+        let ligada = false;
+        b.style.display = "inline-block";
+        b.onclick = () => { ligada = !ligada; trilha.applyConstraints({ advanced: [{ torch: ligada }] }).catch(() => {}); b.textContent = ligada ? "Apagar lanterna" : "Lanterna"; };
+      }
+    } catch (err) { /* sem lanterna */ }
+    const aviso = t => { msg.textContent = t; };
+    const nativo = await this.leitorNativo();
+    if (nativo) {
+      const passo = async () => {
+        if (!ativo) return;
+        try {
+          if (video.readyState >= 2) {
+            const achados = await nativo.detect(video);
+            for (const a of achados) {
+              if (this.leituraValida(a.rawValue)) return terminar(a.rawValue);
+              aviso("Código lido com erro. Segure firme, com boa luz…");
+            }
+          }
+        } catch (err) { /* quadro ainda não pronto */ }
+        setTimeout(passo, 180);
+      };
+      passo();
+      return;
+    }
+    let ZX;
+    try { ZX = await this.carregarZXing(); }
+    catch (err) {
+      fechar();
+      aoErro("Não consegui carregar o leitor de códigos. Use \"Ler de uma foto\" ou digite os números.");
+      return;
+    }
+    if (!ativo) return;
+    // Lê quadro a quadro: copia o vídeo para um canvas e decodifica (mesmo método da leitura de foto).
+    const leitor = new ZX.MultiFormatReader();
+    leitor.setHints(this.dicasZXing(ZX));
+    const cv = document.createElement("canvas");
+    const ctx = cv.getContext("2d", { willReadFrequently: true });
+    const quadro = () => {
+      if (!ativo) return;
+      try {
+        const vw = video.videoWidth, vh = video.videoHeight;
+        if (vw && vh) {
+          const esc = Math.min(1, 1920 / Math.max(vw, vh));
+          cv.width = Math.round(vw * esc); cv.height = Math.round(vh * esc);
+          ctx.drawImage(video, 0, 0, cv.width, cv.height);
+          const r = leitor.decode(new ZX.BinaryBitmap(new ZX.HybridBinarizer(new ZX.HTMLCanvasElementLuminanceSource(cv))));
+          const txt = r && r.getText();
+          if (txt) {
+            if (this.leituraValida(txt)) return terminar(txt);
+            aviso("Código lido com erro. Segure firme, com boa luz…");
+          }
+        }
+      } catch (err) { /* nenhum código neste quadro */ }
+      setTimeout(quadro, 220);
+    };
+    quadro();
+  }
+
+  status(texto, erro) {
+    this.setState({ statusTexto: texto, statusErro: !!erro });
+    clearTimeout(this._st);
+    this._st = setTimeout(() => this.setState({ statusTexto: "", confirmKey: null }), 4000);
+  }
+
+  fmt(v) {
+    if (this.state.privado) return "R$ ••••";
+    return "R$ " + Math.abs(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  num(v) {
+    // Aceita "1.234,56", "1234,56", "12.50" e "1.234" (milhar).
+    let t = String(v == null ? "" : v).trim().replace(/R\$|\s/g, "");
+    if (t.indexOf(",") !== -1) t = t.replace(/\./g, "").replace(",", ".");
+    else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+    if (!/^-?\d*\.?\d+$/.test(t)) return NaN;
+    const n = parseFloat(t);
+    return isFinite(n) ? n : NaN;
+  }
+
+  corDe(nome) {
+    const c = this.state.cats.find(x => x.nome === nome);
+    return c ? c.cor : "#8A857B";
+  }
+
+  setForm(k, v) { this.setState(s => ({ form: { ...s.form, [k]: v } })); }
+  setCampo(grupo, k, v) { this.setState(s => ({ [grupo]: { ...s[grupo], [k]: v } })); }
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.props.accentColor || "#1F4B3F";
+    const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    const nomesMes = { jan: "Janeiro", fev: "Fevereiro", mar: "Março", abr: "Abril", mai: "Maio", jun: "Junho", jul: "Julho", ago: "Agosto", set: "Setembro", out: "Outubro", nov: "Novembro", dez: "Dezembro" };
+    const anoDe = t => t.ano || this.anoAtual;
+    const iso = (a, mi, d) => {
+      const ult = new Date(a, mi + 1, 0).getDate();
+      return a + "-" + String(mi + 1).padStart(2, "0") + "-" + String(Math.min(d, ult)).padStart(2, "0");
+    };
+    const dataPadrao = iso(s.ano, MESES.indexOf(s.mes), this.hoje);
+    const nomeMes = nomesMes[s.mes] || s.mes;
+    const plural = n => n + (n === 1 ? " lançamento" : " lançamentos");
+
+    const mesIdxSel = MESES.indexOf(s.mes);
+    const diasEm = (a, mi) => new Date(a, mi + 1, 0).getDate();
+    // Data no formato dd/mm (e /aaaa quando não é o ano corrente).
+    const dataBR = (a, mi, d) => String(d).padStart(2, "0") + "/" + String(mi + 1).padStart(2, "0") + (a !== this.anoAtual ? "/" + a : "");
+    const hojeIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const contaPadrao = st => st.contas[0] ? st.contas[0].nome : "A definir";
+    const catPadrao = st => st.cats[0] ? st.cats[0].nome : "Outros";
+    const formVazio = (st, extra) => ({ id: null, desc: "", valor: "", dia: dataPadrao, tipo: "saida", cat: catPadrao(st), conta: contaPadrao(st), repetir: "1", bill: "", boleto: "", meta: "", escopo: "um", nota: "", ...(extra || {}) });
+
+    // Preenche o formulário com o que veio de um boleto, Pix ou nota fiscal (câmera, foto ou texto colado).
+    const aplicarLeitura = texto => {
+      const r = this.interpretarCodigo(texto);
+      if (r.erro) return this.setState({ aba: "Lançar", aviso: r.erro, avisoErro: true });
+      if (r.tipo === "link") return this.setState({ aba: "Lançar", aviso: "Li um QR Code com um link, mas não é de nota fiscal: " + r.url.slice(0, 60), avisoErro: true });
+      const valorTxt = v => v ? v.toFixed(2).replace(".", ",") : "";
+      const hojeI = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const catSe = nome => nome && s.cats.some(c => c.nome === nome) ? { cat: nome } : {};
+      let dados = { tipo: "saida", bill: "", meta: "", nota: "" };
+      let aviso = "";
+      if (r.tipo === "boleto") {
+        dados = { ...dados, desc: r.nome, valor: valorTxt(r.valor), boleto: r.linha, pago: "nao", ...catSe(r.cat) };
+        if (r.venc) {
+          dados.dia = iso(r.venc.getUTCFullYear(), r.venc.getUTCMonth(), r.venc.getUTCDate());
+          aviso = "Boleto lido: " + this.fmt(r.valor) + " · vence em " + dataBR(r.venc.getUTCFullYear(), r.venc.getUTCMonth(), r.venc.getUTCDate()) + ". Confira e toque em Lançar.";
+        } else {
+          dados.dia = hojeI;
+          aviso = "Boleto lido: " + this.fmt(r.valor) + ". Esse tipo de conta não traz o vencimento no código: ajuste a data para o dia do vencimento antes de lançar.";
+        }
+      } else if (r.tipo === "pix") {
+        dados = { ...dados, desc: r.nome, valor: valorTxt(r.valor), dia: hojeI, pago: "sim", boleto: "" };
+        aviso = "Pix lido" + (r.cidade ? " (" + r.cidade + ")" : "") + (r.valor ? ": " + this.fmt(r.valor) + "." : ". Esse Pix não traz o valor: informe-o.") + " Confira e toque em Lançar.";
+      } else if (r.tipo === "nfce") {
+        const mi = r.mes >= 0 && r.mes <= 11 ? r.mes : null;
+        const dia = mi !== null && r.dia ? iso(r.ano, mi, r.dia) : hojeI;
+        dados = { ...dados, desc: r.nome, valor: valorTxt(r.valor), dia, pago: "sim", nota: r.url, boleto: "", ...catSe("Mercado") };
+        aviso = r.valor
+          ? "Nota fiscal lida: " + this.fmt(r.valor) + ". Confira e toque em Lançar."
+          : "Nota fiscal lida. Essa nota não traz o valor no QR Code: informe o total do cupom. O link da nota fica guardado no lançamento (botão Nota).";
+      }
+      const p = /^(\d{4})-(\d{2})/.exec(dados.dia || "");
+      const troca = p ? { mes: MESES[Number(p[2]) - 1], ano: Number(p[1]) } : {};
+      this.setState(st => ({ ...troca, aba: "Lançar", confirmId: null, form: { ...st.form, id: null, repetir: "1", ...dados }, aviso, avisoErro: false }));
+    };
+    const sinal = v => (v < 0 ? "− " : "") + this.fmt(v);
+    const chave = t => anoDe(t) * 10000 + (MESES.indexOf(t.mes) + 1) * 100 + (t.dia || 1);
+    const VERMELHO_X = "#B2482F", CINZA_X = "#B8B2A7";
+    // Exclusão em dois cliques: o primeiro arma, o segundo (em até 4 s) apaga.
+    const confirmar = (key, nome, acao) => {
+      if (s.confirmKey === key) { acao(); this.setState({ confirmKey: null, statusTexto: "" }); return; }
+      this.setState({ confirmKey: key });
+      this.status("Clique de novo para excluir " + nome + ".", true);
+    };
+    const corX = key => s.confirmKey === key ? VERMELHO_X : CINZA_X;
+
+    const ts = s.txs.filter(t => t.mes === s.mes && anoDe(t) === s.ano);
+    const entradas = ts.filter(t => t.tipo === "entrada").reduce((a, t) => a + t.valor, 0);
+    const saidas = ts.filter(t => t.tipo === "saida").reduce((a, t) => a + t.valor, 0);
+    const sobra = entradas - saidas;
+    const aportesMes = ts.filter(t => t.tipo === "saida" && t.meta).reduce((a, t) => a + t.valor, 0);
+    const gastos = saidas - aportesMes;
+
+    const porCat = {};
+    ts.filter(t => t.tipo === "saida" && !t.meta).forEach(t => { porCat[t.cat] = (porCat[t.cat] || 0) + t.valor; });
+    const maxCat = Math.max(1, ...Object.values(porCat));
+    const categorias = Object.keys(porCat).sort((a, b) => porCat[b] - porCat[a]).map(nome => ({
+      nome, cor: this.corDe(nome), valorFmt: this.fmt(porCat[nome]),
+      pct: Math.round((porCat[nome] / maxCat) * 100) + "%",
+      share: Math.round((porCat[nome] / Math.max(1, gastos)) * 100) + "%",
+    }));
+
+    const hojeFluxo = Date.UTC(this.anoAtual, MESES.indexOf(this.mesAtual), this.hoje);
+    const ehFutura = t => Date.UTC(anoDe(t), MESES.indexOf(t.mes), t.dia || 1) > hojeFluxo;
+    const recebida = t => typeof t.pago === "boolean" ? t.pago : !ehFutura(t);
+    const entRecebidas = ts.filter(t => t.tipo === "entrada" && recebida(t)).reduce((a, t) => a + t.valor, 0);
+    const entPrevLanc = ts.filter(t => t.tipo === "entrada" && !recebida(t)).reduce((a, t) => a + t.valor, 0);
+
+    // "A receber": com data, conta no mês da data (atrasados contam no mês atual); sem data, no mês atual.
+    const chaveAtual = this.anoAtual * 100 + MESES.indexOf(this.mesAtual);
+    const chaveSel = s.ano * 100 + mesIdxSel;
+    const mesDoRec = r => {
+      if (!r.data) return chaveAtual;
+      const p = r.data.split("-");
+      const k = Number(p[0]) * 100 + Number(p[1]) - 1;
+      return k < chaveAtual ? chaveAtual : k;
+    };
+    const recDoMes = s.receber.map((r, i) => ({ r, i })).filter(x => mesDoRec(x.r) === chaveSel);
+    const entPrevReceber = recDoMes.reduce((a, x) => a + x.r.valor, 0);
+    const receberItem = i => this.setState(st => {
+      const r = st.receber[i];
+      if (!r) return null;
+      const miSt = MESES.indexOf(st.mes);
+      let dia = 1;
+      if (st.mes === this.mesAtual && st.ano === this.anoAtual) dia = this.hoje;
+      else if (r.data) { const p = r.data.split("-"); if (Number(p[0]) === st.ano && Number(p[1]) - 1 === miSt) dia = Number(p[2]); }
+      return {
+        txs: st.txs.concat({ id: Date.now(), desc: r.nome, valor: r.valor, tipo: "entrada", cat: st.cats.some(c => c.nome === "Salário") ? "Salário" : catPadrao(st), conta: contaPadrao(st), dia, mes: st.mes, ano: st.ano, pago: true, pagoEm: hojeIso }),
+        receber: st.receber.filter((_, j) => j !== i),
+        novoRec: st.novoRec.idx === i ? { nome: "", valor: "", data: "", idx: null } : st.novoRec,
+        statusTexto: r.nome + " recebido e lançado como entrada em " + st.mes + "/" + st.ano + ".", statusErro: false,
+      };
+    });
+
+    const entPrevistas = entPrevLanc + entPrevReceber;
+    const naoLancadas = s.bills.filter(x => !s.txs.some(t => t.bill === x.id && t.mes === s.mes && anoDe(t) === s.ano)).reduce((a, x) => a + x.valor, 0);
+    const saidasPagas = ts.filter(t => t.tipo === "saida" && t.pago).reduce((a, t) => a + t.valor, 0);
+    const saidasAbertas = saidas - saidasPagas;
+    const realizado = entRecebidas - saidasPagas;
+    const saldoPrevisto = entradas + entPrevReceber - saidas - naoLancadas;
+    const maxF = Math.max(1, entRecebidas, entPrevistas, saidas);
+    const fluxo = [
+      { label: "Entradas recebidas", valor: entRecebidas, cor: accent },
+      { label: "Previsão de entradas", valor: entPrevistas, cor: "#C9A227",
+        nota: entPrevistas ? [entPrevLanc ? "lançadas a receber " + this.fmt(entPrevLanc) : "", entPrevReceber ? "a receber " + this.fmt(entPrevReceber) : ""].filter(Boolean).join(" · ") : "" },
+      { label: "Saídas", valor: saidas, cor: "#E2B4A5" },
+    ].map(f => ({ label: f.label, cor: f.cor, nota: f.nota || "", temNota: !!f.nota, valorFmt: this.fmt(f.valor), w: Math.max(3, Math.round((f.valor / maxF) * 100)) + "%" }));
+
+    const linha = t => ({
+      descricao: t.desc,
+      meta: (t.tipo === "saida" && t.pago === false ? "vence " : "") + dataBR(anoDe(t), MESES.indexOf(t.mes), t.dia) + " · " + t.cat + " · " + t.conta + (t.serie ? " · recorrente" : "") + (t.tipo === "saida" && t.pago === false ? " · a pagar" : "") + (t.tipo === "entrada" && t.pago === false ? " · a receber" : "") + (t.meta ? " · aporte em meta" : ""),
+      inicial: t.cat.charAt(0),
+      cor: this.corDe(t.cat),
+      corValor: t.tipo === "entrada" ? accent : "#4A463F",
+      valorFmt: (t.tipo === "entrada" ? "+ " : "− ") + this.fmt(t.valor).replace("R$ ", ""),
+    });
+
+    const ordenados = ts.slice().sort((a, b) => b.dia - a.dia);
+    const filtrados = ordenados.filter(t => s.filtro === "Tudo" || (s.filtro === "Entradas" ? t.tipo === "entrada" : t.tipo === "saida"));
+
+    const lancamentos = filtrados.map(t => {
+      const pend = s.confirmId === t.id;
+      return {
+        ...linha(t),
+        labelExcluir: pend ? "Confirmar" : "Excluir",
+        temNota: !!t.nota,
+        abrirNota: () => { try { window.open(t.nota, "_blank", "noopener"); } catch (err) { /* ignorado */ } },
+        corExcluir: pend ? "#FFFFFF" : "#4A463F",
+        bgExcluir: pend ? "#B2482F" : "#FFFFFF",
+        bordaExcluir: pend ? "#B2482F" : "#DCD7CD",
+        temSerie: !!t.serie,
+        labelSerie: s.confirmKey === "serie:" + t.serie ? "Confirmar" : "Série",
+        corSerie: s.confirmKey === "serie:" + t.serie ? "#FFFFFF" : "#4A463F",
+        bgSerie: s.confirmKey === "serie:" + t.serie ? "#B2482F" : "#FFFFFF",
+        bordaSerie: s.confirmKey === "serie:" + t.serie ? "#B2482F" : "#DCD7CD",
+        excluirSerie: () => confirmar("serie:" + t.serie, "toda a recorrência " + t.desc.replace(/\s*\(\d+\/\d+\)$/, ""), () => this.setState(st => ({
+          txs: st.txs.filter(x => x.serie !== t.serie),
+          confirmId: null, aviso: "Recorrência excluída.", avisoErro: false,
+          form: st.form.id && st.txs.some(x => x.id === st.form.id && x.serie === t.serie) ? formVazio(st) : st.form,
+        }))),
+        editar: () => this.setState({
+          aba: "Lançar", confirmId: null, aviso: t.serie ? "Este lançamento faz parte de uma recorrência: escolha abaixo se a alteração vale só para este mês ou também para os próximos." : "",
+          form: { id: t.id, desc: t.desc, valor: String(t.valor).replace(".", ","), dia: iso(anoDe(t), MESES.indexOf(t.mes), t.dia), tipo: t.tipo, cat: t.cat, conta: t.conta, repetir: "1", bill: t.bill || "", boleto: "", meta: t.meta ? String(t.meta) : "", pago: t.pago === false ? "nao" : "sim", escopo: "um", nota: t.nota || "" },
+        }),
+        excluir: () => {
+          if (!pend) return this.setState({ confirmId: t.id });
+          this.setState(st => ({
+            txs: st.txs.filter(x => x.id !== t.id), confirmId: null,
+            aviso: "Lançamento excluído.", avisoErro: false,
+            form: st.form.id === t.id ? formVazio(st) : st.form,
+          }));
+        },
+      };
+    });
+
+    // Saldo acumulado: saldo inicial + tudo o que foi efetivamente pago/recebido até o fim do mês selecionado.
+    const nomesCad = s.contas.map(a => a.nome);
+    const semConta = t => nomesCad.indexOf(t.conta) === -1;
+    const fimSel = s.ano * 10000 + (mesIdxSel + 1) * 100 + 99;
+    const listaContas = s.contas.concat(s.txs.some(t => semConta(t) && chave(t) <= fimSel) ? [{ nome: "A definir", tipo: "Lançamentos sem conta cadastrada", cor: "#8A857B", inicial: 0, virtual: true }] : []);
+    const daConta = (a, t) => a.virtual ? semConta(t) : t.conta === a.nome;
+    const efeito = t => t.tipo === "entrada" ? t.valor : -t.valor;
+    const contas = listaContas.map(a => {
+      const mov = ts.filter(t => daConta(a, t)).reduce((acc, t) => acc + efeito(t), 0);
+      const acum = (a.inicial || 0) + s.txs.filter(t => daConta(a, t) && chave(t) <= fimSel && recebida(t)).reduce((acc, t) => acc + efeito(t), 0);
+      return { nome: a.nome, tipo: a.tipo + " · " + nomeMes.slice(0, 3).toLowerCase() + ": " + (mov > 0 ? "+ " : "") + sinal(mov), cor: a.cor || accent, saldoFmt: sinal(acum), corValor: acum < 0 ? "#B2482F" : "#1A1A1A" };
+    });
+
+    const lancadoNoMes = x => s.txs.some(t => t.bill === x.id && t.mes === s.mes && anoDe(t) === s.ano);
+    const estaPaga = lancadoNoMes;
+    const registrarPagamento = b => this.setState(st => {
+      if (st.txs.some(t => t.bill === b.id && t.mes === st.mes && anoDe(t) === st.ano)) return null;
+      return {
+        txs: st.txs.concat({ id: Date.now(), desc: b.nome, valor: b.valor, tipo: "saida", cat: st.cats.some(c => c.nome === b.cat) ? b.cat : catPadrao(st), conta: contaPadrao(st), dia: Math.min(b.dia || this.hoje, diasEm(st.ano, MESES.indexOf(st.mes))), mes: st.mes, ano: st.ano, bill: b.id, pago: true, pagoEm: hojeIso }),
+        statusTexto: b.nome + " lançada como paga em " + st.mes + "/" + st.ano + " na conta " + contaPadrao(st) + ".", statusErro: false,
+      };
+    });
+    const diasDoMes = new Date(s.ano, MESES.indexOf(s.mes) + 1, 0).getDate();
+    const hojeMs = Date.UTC(this.anoAtual, MESES.indexOf(this.mesAtual), this.hoje);
+
+    const bills = s.bills.slice().sort((a, b) => (a.dia === null ? 99 : a.dia) - (b.dia === null ? 99 : b.dia));
+    const itensPagar = ts.filter(t => t.tipo === "saida" && !t.meta).map(t => ({ tx: t, nome: t.desc, valor: t.valor, dia: t.dia || null }))
+      .concat(s.bills.filter(x => !lancadoNoMes(x)).map(x => ({ bill: x, nome: x.nome, valor: x.valor, dia: x.dia })));
+    const itensEntrada = ts.filter(t => t.tipo === "entrada").map(t => ({ entrada: true, tx: t, nome: t.desc, valor: t.valor, dia: t.dia || null }))
+      .concat(recDoMes.map(x => {
+        const p = x.r.data ? x.r.data.split("-") : null;
+        const noMes = p && Number(p[0]) * 100 + Number(p[1]) - 1 === chaveSel;
+        return { entrada: true, rec: x.r, recIdx: x.i, nome: x.r.nome, valor: x.r.valor, dia: noMes ? Number(p[2]) : null, atrasado: !!p && !noMes };
+      }));
+    const itensMov = itensPagar.concat(itensEntrada)
+      .sort((a, b) => (a.dia === null ? 99 : a.dia) - (b.dia === null ? 99 : b.dia) || (a.entrada ? -1 : 1));
+    const AMARELO = "#A67C00";
+    const vencimentos = itensMov.map(b => {
+      const hojeIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      if (b.entrada) {
+        const ok = b.tx ? recebida(b.tx) : false;
+        const cor = ok ? "#2E7D4F" : AMARELO;
+        const dp = b.tx && b.tx.pagoEm ? b.tx.pagoEm.split("-") : null;
+        const dataRec = dp ? dp[2] + "/" + dp[1] : (b.tx ? String(b.tx.dia).padStart(2, "0") + "/" + String(MESES.indexOf(b.tx.mes) + 1).padStart(2, "0") : null);
+        return {
+          nome: b.nome, valorFmt: "+ " + this.fmt(b.valor),
+          situacao: ok ? "Recebida" : "Previsão",
+          faixa: cor, fundo: ok ? "#EEF6F0" : "#FBF5E3",
+          prazo: ok ? "Entrada recebida em " + dataRec
+            : (b.tx ? "Entrada prevista para " + dataBR(s.ano, mesIdxSel, b.tx.dia)
+              : b.atrasado ? "A receber · atrasado (previsto para " + b.rec.data.split("-").reverse().join("/") + ")"
+              : b.dia ? "A receber · previsto para " + dataBR(s.ano, mesIdxSel, b.dia) : "A receber · sem data definida"),
+          corPrazo: cor, corNome: "#1A1A1A", corValor: cor,
+          marca: ok ? "✓" : "", marcaBg: ok ? "#2E7D4F" : "#FFFFFF", marcaBorda: cor,
+          titulo: ok ? "Desmarcar recebimento" : "Marcar como recebida",
+          pagar: () => {
+            if (b.tx) {
+              this.setState(st => ({ txs: st.txs.map(x => x.id === b.tx.id ? { ...x, pago: !recebida(x), pagoEm: !recebida(x) ? hojeIso : undefined } : x) }));
+            } else {
+              receberItem(b.recIdx);
+            }
+          },
+        };
+      }
+      const semData = b.dia === null;
+      const paga = b.tx ? !!b.tx.pago : false;
+      const diaV = semData ? null : Math.min(b.dia, diasDoMes);
+      const venceMs = semData ? null : Date.UTC(s.ano, MESES.indexOf(s.mes), diaV);
+      const dif = semData ? 99 : Math.round((venceMs - hojeMs) / 86400000);
+      const vencida = !semData && dif < 0 && !paga;
+      const prazo = semData ? "Dia de vencimento não informado"
+        : dif < 0 ? "Venceu em " + dataBR(s.ano, mesIdxSel, diaV) + " · há " + (-dif) + (dif === -1 ? " dia" : " dias")
+        : dif === 0 ? "Vence hoje · " + dataBR(s.ano, mesIdxSel, diaV)
+        : "Vence em " + dataBR(s.ano, mesIdxSel, diaV) + " · faltam " + dif + (dif === 1 ? " dia" : " dias");
+      const VERDE = "#2E7D4F", AZUL = "#2B6A8F", VERMELHO = "#B2482F";
+      const cor = paga ? VERDE : (vencida ? VERMELHO : AZUL);
+      const dp = b.tx && b.tx.pagoEm ? b.tx.pagoEm.split("-") : null;
+      const dataPag = dp ? dp[2] + "/" + dp[1]
+        : (b.tx ? String(b.tx.dia).padStart(2, "0") + "/" + String(MESES.indexOf(b.tx.mes) + 1).padStart(2, "0") : null);
+      return {
+        nome: b.nome, valorFmt: this.fmt(b.valor),
+        situacao: paga ? "Paga" : (vencida ? "Vencida" : "A pagar"),
+        faixa: cor,
+        fundo: paga ? "#EEF6F0" : (vencida ? "#FBEDEA" : "#EDF3F7"),
+        prazo: paga
+          ? (dataPag ? "Paga em " + dataPag : "Paga") + (semData ? "" : " · venc. " + dataBR(s.ano, mesIdxSel, diaV))
+          : prazo + (b.bill ? " · não lançada" : ""),
+        corPrazo: cor,
+        corNome: "#1A1A1A",
+        corValor: cor,
+        marca: paga ? "✓" : "", marcaBg: paga ? VERDE : "#FFFFFF",
+        marcaBorda: cor,
+        titulo: paga ? "Desmarcar pagamento" : "Marcar como paga",
+        valorFmt: "− " + this.fmt(b.valor),
+        pagar: () => {
+          if (b.tx) {
+            this.setState(st => ({ txs: st.txs.map(x => x.id === b.tx.id ? { ...x, pago: !x.pago, pagoEm: !x.pago ? hojeIso : undefined } : x) }));
+          } else {
+            registrarPagamento(b.bill);
+          }
+        },
+      };
+    });
+    const pendentes = itensPagar.filter(x => !(x.tx && x.tx.pago));
+    const entPendentes = itensEntrada.filter(x => !(x.tx && recebida(x.tx)));
+    const movEntOk = itensEntrada.filter(x => x.tx && recebida(x.tx)).reduce((a, x) => a + x.valor, 0);
+    const movEntTot = itensEntrada.reduce((a, x) => a + x.valor, 0);
+    const movSaiTot = itensPagar.reduce((a, x) => a + x.valor, 0) + aportesMes;
+    const movRealizado = realizado;
+    const movFinal = saldoPrevisto;
+
+    const grupos = {};
+    s.txs.filter(t => t.serie).forEach(t => {
+      if (!grupos[t.serie]) grupos[t.serie] = [];
+      grupos[t.serie].push(t);
+    });
+    const series = Object.keys(grupos).map(k => {
+      const g = grupos[k];
+      const t = g[0];
+      const ordenada = g.slice().sort((a, b) => (anoDe(a) - anoDe(b)) || (MESES.indexOf(a.mes) - MESES.indexOf(b.mes)));
+      const pri = ordenada[0], ult = ordenada[ordenada.length - 1];
+      const meses = g.length + (g.length === 1 ? " mês" : " meses") + " · " + nomesMes[pri.mes].slice(0, 3).toLowerCase() + "/" + anoDe(pri) + " a " + nomesMes[ult.mes].slice(0, 3).toLowerCase() + "/" + anoDe(ult);
+      return {
+        nome: t.desc, cor: this.corDe(t.cat),
+        detalhe: (t.tipo === "entrada" ? "Entrada" : "Saída") + " · dia " + t.dia + " · " + meses,
+        valorFmt: (t.tipo === "entrada" ? "+ " : "− ") + this.fmt(t.valor).replace("R$ ", ""),
+        corValor: t.tipo === "entrada" ? accent : "#4A463F",
+        corRemover: corX("recor:" + k),
+        remover: () => confirmar("recor:" + k, "a recorrência " + t.desc, () => this.setState(st => ({ txs: st.txs.filter(x => x.serie !== k) }))),
+      };
+    });
+
+    const aportesDe = g => s.txs.filter(t => t.meta === g.id);
+    const guardado = g => g.atual + aportesDe(g).reduce((a, t) => a + t.valor, 0);
+    const abrirAporte = g => this.setState(st => ({
+      aba: "Lançar", confirmId: null, aviso: "Aporte para " + g.nome + ": informe o valor e a data.", avisoErro: false,
+      form: formVazio(st, { desc: "Aporte · " + g.nome, cat: "Metas", meta: String(g.id), pago: "sim" }),
+    }));
+    const metas = s.metas.map(g => {
+      const total = guardado(g), n = aportesDe(g).length;
+      return {
+        nome: g.nome, cor: g.cor,
+        pct: Math.min(100, Math.round((total / Math.max(1, g.alvo)) * 100)) + "%",
+        progresso: this.fmt(total).replace("R$ ", "") + " de " + this.fmt(g.alvo).replace("R$ ", ""),
+        nota: n ? n + (n === 1 ? " aporte" : " aportes") + " · faltam " + this.fmt(Math.max(0, g.alvo - total)) : "Faltam " + this.fmt(Math.max(0, g.alvo - total)),
+        aportar: () => abrirAporte(g),
+      };
+    });
+
+    const relCat = s.cats.some(c => c.nome === s.relCat) ? s.relCat : "Todas as categorias";
+    const extratoTs = ordenados.filter(t => relCat === "Todas as categorias" || t.cat === relCat);
+    const extrato = extratoTs.map(t => linha(t));
+
+    const receberTotal = s.receber.reduce((a, r) => a + r.valor, 0);
+    const receberLista = s.receber.map((r, i) => ({
+      nome: r.nome, valorFmt: this.fmt(r.valor),
+      dataLabel: r.data ? "Previsto para " + r.data.split("-").reverse().join("/") + (mesDoRec(r) === chaveAtual && r.data.slice(0, 7) < hojeIso.slice(0, 7) ? " · atrasado" : "") : "Sem data · conta no mês atual",
+      receber: () => receberItem(i),
+      editar: () => this.setState({ novoRec: { nome: r.nome, valor: String(r.valor).replace(".", ","), data: r.data || "", idx: i } }),
+      corRemover: corX("receber:" + i),
+      remover: () => confirmar("receber:" + i, r.nome, () => this.setState(st => ({ receber: st.receber.filter((_, j) => j !== i), novoRec: { nome: "", valor: "", data: "", idx: null } }))),
+    }));
+
+    const inicioConsulta = s.ano * 10000 + (MESES.indexOf(s.mes) + 1) * 100;
+    const futuras = s.txs.filter(t => t.tipo === "saida" && !t.meta && !t.pago && chave(t) >= inicioConsulta && (!!t.serie || t.cat === "Dívidas"));
+
+    // Relatórios: comparação com o mês anterior e resumo do ano.
+    const totMes = (a, mi) => {
+      const xs = s.txs.filter(t => anoDe(t) === a && MESES.indexOf(t.mes) === mi);
+      return { ent: xs.filter(t => t.tipo === "entrada").reduce((x, t) => x + t.valor, 0), sai: xs.filter(t => t.tipo === "saida").reduce((x, t) => x + t.valor, 0) };
+    };
+    const miAnt = mesIdxSel === 0 ? 11 : mesIdxSel - 1, anoAnt = mesIdxSel === 0 ? s.ano - 1 : s.ano;
+    const ant = totMes(anoAnt, miAnt);
+    const variacao = (a, b) => !b ? "sem base" : (a >= b ? "+" : "−") + Math.abs(Math.round(((a - b) / b) * 100)) + "%";
+    const nomeAnt = nomesMes[MESES[miAnt]].toLowerCase() + (anoAnt !== s.ano ? "/" + anoAnt : "");
+    const comparativo = ant.ent || ant.sai
+      ? "Comparado a " + nomeAnt + ": entradas " + variacao(entradas, ant.ent) + " · saídas " + variacao(saidas, ant.sai) + " (" + this.fmt(ant.sai) + " em " + nomeAnt + ")"
+      : "Sem lançamentos em " + nomeAnt + " para comparar.";
+    const anualDados = MESES.map((m, mi) => ({ m, mi, ...totMes(s.ano, mi) }));
+    const maxAnual = Math.max(1, ...anualDados.map(x => Math.max(x.ent, x.sai)));
+    const totAno = anualDados.reduce((a, x) => ({ ent: a.ent + x.ent, sai: a.sai + x.sai }), { ent: 0, sai: 0 });
+    const anual = anualDados.map(x => ({
+      label: nomesMes[x.m].slice(0, 3),
+      entFmt: x.ent ? this.fmt(x.ent) : "—", saiFmt: x.sai ? this.fmt(x.sai) : "—",
+      saldoFmt: x.ent || x.sai ? sinal(x.ent - x.sai) : "—",
+      corSaldo: x.ent - x.sai < 0 ? "#B2482F" : "#1A1A1A",
+      wEnt: Math.round((x.ent / maxAnual) * 100) + "%", wSai: Math.round((x.sai / maxAnual) * 100) + "%",
+      bg: x.m === s.mes ? "#F6F3EC" : "#FFFFFF",
+      abrir: () => this.setState({ mes: x.m, confirmId: null, confirmKey: null }),
+    }));
+
+    const ub = s.ultimoBackup ? new Date(s.ultimoBackup) : null;
+    const diasSemBackup = ub ? Math.floor((Date.now() - ub.getTime()) / 86400000) : null;
+
+    // ---------- Calendário (.ics) ----------
+    const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+    const ymd = (a, mi, d) => { const x = new Date(Date.UTC(a, mi, d)); return x.getUTCFullYear() + String(x.getUTCMonth() + 1).padStart(2, "0") + String(x.getUTCDate()).padStart(2, "0"); };
+    const icsTexto = t => String(t).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+    const dobrar = linha => {
+      const enc = new TextEncoder();
+      const partes = [];
+      let resto = linha;
+      while (enc.encode(resto).length > 74) {
+        let n = Math.min(resto.length, 74);
+        while (n > 1 && enc.encode(resto.slice(0, n)).length > 74) n--;
+        if (/[\uD800-\uDBFF]/.test(resto[n - 1])) n--;
+        partes.push(resto.slice(0, n));
+        resto = " " + resto.slice(n);
+      }
+      partes.push(resto);
+      return partes.join("\r\n");
+    };
+    const real = v => "R$ " + Math.abs(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const montarEventos = horizonte => {
+      const hojeD = new Date(this.anoAtual, MESES.indexOf(this.mesAtual), this.hoje);
+      const hojeK = this.anoAtual * 10000 + (MESES.indexOf(this.mesAtual) + 1) * 100 + this.hoje;
+      const fim = new Date(hojeD.getFullYear(), hojeD.getMonth() + horizonte + 1, 0);
+      const fimK = fim.getFullYear() * 10000 + (fim.getMonth() + 1) * 100 + fim.getDate();
+      const eventos = [];
+      const pendentesPorDia = {};
+      const anotar = (k, linha, valor, entrada) => {
+        if (k < hojeK || k > fimK) return;
+        (pendentesPorDia[k] = pendentesPorDia[k] || []).push({ linha, valor, entrada });
+      };
+      // 1) Todos os lançamentos (registro completo); aviso só nos pendentes de hoje em diante.
+      s.txs.forEach(t => {
+        const a = anoDe(t), mi = MESES.indexOf(t.mes);
+        if (mi < 0) return;
+        const d = Math.min(t.dia || 1, diasEm(a, mi));
+        const k = a * 10000 + (mi + 1) * 100 + d;
+        const entrada = t.tipo === "entrada";
+        const feito = entrada ? recebida(t) : !!t.pago;
+        const rotulo = entrada ? (feito ? "Recebido" : "A receber") : (feito ? "Pago" : "A pagar");
+        const titulo = rotulo + " · " + t.desc + " · " + real(t.valor);
+        const desc = [
+          (entrada ? "Entrada" : "Saída") + " de " + real(t.valor),
+          "Situação: " + rotulo.toLowerCase() + (feito && t.pagoEm ? " em " + t.pagoEm.split("-").reverse().join("/") : ""),
+          "Categoria: " + t.cat, "Conta: " + t.conta,
+          t.serie ? "Lançamento recorrente" : "", t.meta ? "Aporte em meta" : "", t.nota ? "Nota fiscal: " + t.nota : "",
+          "Controle financeiro",
+        ].filter(Boolean).join("\n");
+        eventos.push({ uid: "tx-" + t.id, a, mi, d, titulo, desc, aviso: !feito && k >= hojeK });
+        if (!feito) anotar(k, rotulo + " · " + t.desc + " · " + real(t.valor), t.valor, entrada);
+      });
+      // 2) Contas a pagar cadastradas ainda não lançadas nos próximos meses.
+      let semDia = 0;
+      for (let i = 0; i <= horizonte; i++) {
+        const base = new Date(hojeD.getFullYear(), hojeD.getMonth() + i, 1);
+        const a = base.getFullYear(), mi = base.getMonth();
+        s.bills.forEach(b => {
+          if (s.txs.some(t => t.bill === b.id && t.mes === MESES[mi] && anoDe(t) === a)) return;
+          if (!b.dia) { if (i === 0) semDia++; return; }
+          const d = Math.min(b.dia, diasEm(a, mi));
+          const k = a * 10000 + (mi + 1) * 100 + d;
+          if (k < hojeK) return;
+          eventos.push({ uid: "conta-" + b.id + "-" + a + "-" + (mi + 1), a, mi, d,
+            titulo: "A pagar · " + b.nome + " · " + real(b.valor),
+            desc: "Conta a pagar prevista (ainda não lançada no app)\nValor: " + real(b.valor) + "\nCategoria: " + (b.cat || "Outros") + "\nControle financeiro",
+            aviso: true });
+          anotar(k, "A pagar · " + b.nome + " · " + real(b.valor), b.valor, false);
+        });
+      }
+      // 3) Valores a receber com data prevista.
+      s.receber.forEach(r => {
+        if (!r.data) return;
+        const p = r.data.split("-").map(Number);
+        const k = p[0] * 10000 + p[1] * 100 + p[2];
+        if (k < hojeK) return;
+        const chaveR = (r.nome + "|" + r.data).toLowerCase().replace(/[^a-z0-9|]/g, "");
+        eventos.push({ uid: "receber-" + chaveR, a: p[0], mi: p[1] - 1, d: p[2],
+          titulo: "A receber · " + r.nome + " · " + real(r.valor),
+          desc: "Valor a receber\nValor: " + real(r.valor) + "\nControle financeiro", aviso: true });
+        anotar(k, "A receber · " + r.nome + " · " + real(r.valor), r.valor, true);
+      });
+      // 4) Resumo da semana em cada domingo do período.
+      const dom = new Date(hojeD); dom.setDate(dom.getDate() + ((7 - dom.getDay()) % 7));
+      let resumos = 0;
+      while (dom <= fim) {
+        const linhas = [];
+        let pagar = 0, receberS = 0, nP = 0, nR = 0;
+        for (let j = 0; j < 7; j++) {
+          const x = new Date(dom.getFullYear(), dom.getMonth(), dom.getDate() + j);
+          const k = x.getFullYear() * 10000 + (x.getMonth() + 1) * 100 + x.getDate();
+          (pendentesPorDia[k] || []).forEach(it => {
+            linhas.push(SEMANA[x.getDay()] + " " + String(x.getDate()).padStart(2, "0") + "/" + String(x.getMonth() + 1).padStart(2, "0") + " · " + it.linha);
+            if (it.entrada) { receberS += it.valor; nR++; } else { pagar += it.valor; nP++; }
+          });
+        }
+        const titulo = linhas.length
+          ? "Resumo da semana · " + [nP ? "pagar " + real(pagar) : "", nR ? "receber " + real(receberS) : ""].filter(Boolean).join(" · ")
+          : "Resumo da semana · nada a pagar ou receber";
+        const desc = (linhas.length ? linhas.join("\n") + "\n\nTotal a pagar: " + real(pagar) + "\nTotal a receber: " + real(receberS) + "\nSaldo da semana: " + (receberS - pagar < 0 ? "− " : "") + real(receberS - pagar) : "Nenhuma conta a pagar ou a receber nesta semana.") + "\n\nResumo feito em " + new Date().toLocaleDateString("pt-BR") + ". Contas lançadas depois não aparecem aqui: envie de novo ao calendário.\nControle financeiro";
+        eventos.push({ uid: "semana-" + ymd(dom.getFullYear(), dom.getMonth(), dom.getDate()), a: dom.getFullYear(), mi: dom.getMonth(), d: dom.getDate(), titulo, desc, aviso: true, resumo: true });
+        resumos++;
+        dom.setDate(dom.getDate() + 7);
+      }
+      return { eventos, semDia, resumos };
+    };
+    const gerarIcs = (eventos, seqs) => {
+      const agora = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+      const linhas = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Controle financeiro//PT-BR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "X-WR-CALNAME:Finanças", "X-WR-TIMEZONE:America/Sao_Paulo"];
+      eventos.forEach(ev => {
+        linhas.push("BEGIN:VEVENT", "UID:" + ev.uid + "@controle-financeiro", "SEQUENCE:" + (seqs[ev.uid] || 0), "DTSTAMP:" + agora,
+          "DTSTART;VALUE=DATE:" + ymd(ev.a, ev.mi, ev.d), "DTEND;VALUE=DATE:" + ymd(ev.a, ev.mi, ev.d + 1),
+          "SUMMARY:" + icsTexto(ev.titulo), "DESCRIPTION:" + icsTexto(ev.desc), "CATEGORIES:Finanças", "TRANSP:TRANSPARENT");
+        if (ev.aviso) linhas.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsTexto(ev.titulo), "TRIGGER;RELATED=START:PT8H", "END:VALARM");
+        linhas.push("END:VEVENT");
+      });
+      linhas.push("END:VCALENDAR");
+      return linhas.map(dobrar).join("\r\n") + "\r\n";
+    };
+    // Monta o arquivo; no modo "novos", só leva eventos novos ou alterados desde o último envio.
+    const prepararCalendario = () => {
+      let antes = { em: "", eventos: {} };
+      try { antes = JSON.parse(localStorage.getItem(this.CHAVE + "-calendario") || "null") || antes; } catch (err) { /* sem histórico */ }
+      const { eventos, semDia, resumos } = montarEventos(parseInt(s.calHorizonte, 10) || 3);
+      const marca = ev => ev.titulo + "|" + ev.desc.replace(/Resumo feito em [^.]*\./, "") + "|" + ymd(ev.a, ev.mi, ev.d) + "|" + ev.aviso;
+      const novoMapa = {}, seqs = {};
+      const escolhidos = eventos.filter(ev => {
+        const m = marca(ev), velho = antes.eventos && antes.eventos[ev.uid];
+        const seq = velho ? (velho.m === m ? velho.s : velho.s + 1) : 0;
+        novoMapa[ev.uid] = { m, s: seq };
+        seqs[ev.uid] = seq;
+        return s.calModo === "tudo" || !velho || velho.m !== m;
+      });
+      const ics = gerarIcs(escolhidos, seqs);
+      const salvar = () => {
+        const em = new Date().toISOString();
+        try { localStorage.setItem(this.CHAVE + "-calendario", JSON.stringify({ em, eventos: { ...(antes.eventos || {}), ...novoMapa } })); } catch (err) { /* sem armazenamento */ }
+        this.setState({ calUltimo: em });
+      };
+      const resumoTxt = escolhidos.length + (escolhidos.length === 1 ? " evento" : " eventos")
+        + " (" + [[escolhidos.filter(e => !e.resumo).length, "movimento", "movimentos"], [escolhidos.filter(e => e.resumo).length, "resumo de domingo", "resumos de domingo"]].filter(x => x[0]).map(x => x[0] + " " + (x[0] === 1 ? x[1] : x[2])).join(" e ") + ")"
+        + (semDia ? ". " + semDia + (semDia === 1 ? " conta a pagar ficou de fora por não ter dia de vencimento" : " contas a pagar ficaram de fora por não terem dia de vencimento") : "");
+      return { ics, n: escolhidos.length, salvar, resumoTxt, nome: "financas-" + new Date().toISOString().slice(0, 10) + ".ics" };
+    };
+    const dividaTotal = futuras.reduce((a, t) => a + t.valor, 0);
+    const ultimaDiv = futuras.slice().sort((a, b) => chave(a) - chave(b)).pop();
+
+    return {
+      abas: ["Painel", "Lançar", "Cadastros", "Relatórios"].map(a => ({
+        label: a, bg: a === s.aba ? accent : "#FFFFFF",
+        fg: a === s.aba ? "#F4F2EE" : "#7A756C",
+        borda: a === s.aba ? accent : "#DCD7CD",
+        select: () => this.setState({ aba: a, confirmId: null }),
+      })),
+      isPainel: s.aba === "Painel", isLancar: s.aba === "Lançar",
+      isCadastros: s.aba === "Cadastros", isRelatorios: s.aba === "Relatórios",
+
+      months: MESES.map(m => ({
+        label: nomesMes[m].slice(0, 3), bg: m === s.mes ? accent : "transparent",
+        fg: m === s.mes ? "#F4F2EE" : "#7A756C",
+        select: () => this.setState({ mes: m, confirmId: null, confirmKey: null }),
+      })),
+      comparativo, anual,
+      anualTotal: "Entradas " + this.fmt(totAno.ent) + " · saídas " + this.fmt(totAno.sai) + " · saldo " + sinal(totAno.ent - totAno.sai),
+      infoDados: (s.nomeArquivo ? "Arquivo de dados: " + s.nomeArquivo + " — o botão Sair grava nele. " : "Os dados ficam salvos só neste navegador. ")
+        + (ub ? "Último backup: " + ub.toLocaleDateString("pt-BR") + (diasSemBackup >= 7 ? " — já faz " + diasSemBackup + " dias, faça um novo backup." : ".") : "Nenhum backup feito ainda — use o botão Backup."),
+      corInfoDados: !ub || diasSemBackup >= 7 ? "#A67C00" : "#7A756C",
+      ano: String(s.ano),
+      anoAnterior: () => this.setState(st => ({ ano: st.ano - 1 })),
+      anoSeguinte: () => this.setState(st => ({ ano: st.ano + 1 })),
+      tituloMes: nomeMes + " de " + s.ano,
+      mesMinusculo: nomeMes.toLowerCase(),
+      fluxoTitulo: "Fluxo de " + nomeMes.toLowerCase(),
+      temStatus: !!s.statusTexto, status: s.statusTexto,
+      corStatus: s.statusErro ? "#B2482F" : "#1F4B3F",
+      suportaArquivo: this.suportaFS(),
+      semSuporteArquivo: !this.suportaFS(),
+      dicaAbrir: "Escolher o arquivo .json de dados. O Sair passa a gravar direto nele.",
+      dicaSair: s.nomeArquivo ? "Grava os dados em " + s.nomeArquivo + " e encerra." : "Escolhe onde criar o arquivo .json de dados e grava.",
+      exportar: async () => { const msg = await this.compartilharBackup(); if (msg) this.status(msg); },
+      dicaBackup: "Gera um arquivo com todos os seus dados. No celular, dá para mandar para o WhatsApp ou o Google Drive.",
+      podeInstalar: !!s.podeInstalar,
+      instalar: async () => {
+        const ev = window.__convite;
+        if (!ev) return;
+        ev.prompt();
+        try { await ev.userChoice; } catch (err) { /* ignorado */ }
+        window.__convite = null;
+        this.setState({ podeInstalar: false });
+      },
+      calHorizonte: s.calHorizonte, calModo: s.calModo,
+      setCalHorizonte: e => this.setState({ calHorizonte: e.target.value }),
+      setCalModo: e => this.setState({ calModo: e.target.value }),
+      calInfo: s.calUltimo
+        ? "Último envio ao calendário: " + new Date(s.calUltimo).toLocaleDateString("pt-BR") + ". Depois de lançar ou alterar contas, envie de novo: só vai o que mudou."
+        : "Ainda não enviado. O primeiro envio leva todos os lançamentos e as contas previstas.",
+      corCalInfo: "#7A756C",
+      enviarCalendario: () => {
+        const c = prepararCalendario();
+        if (!c.n) return this.status("Nada novo para enviar: o calendário já está em dia.");
+        const blob = new Blob([c.ics], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        if (ios) {
+          // No iPhone, abrir o arquivo mostra a tela "Adicionar tudo" do Calendário.
+          window.location.href = url;
+        } else {
+          const a = document.createElement("a");
+          a.href = url; a.download = c.nome;
+          document.body.appendChild(a); a.click(); a.remove();
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        c.salvar();
+        this.status("Calendário: " + c.resumoTxt + (ios ? ". Toque em \"Adicionar tudo\"." : ". Abra o arquivo baixado para adicionar ao calendário."));
+      },
+      compartilharCalendario: async () => {
+        const c = prepararCalendario();
+        if (!c.n) return this.status("Nada novo para enviar: o calendário já está em dia.");
+        const arquivo = new File([c.ics], c.nome, { type: "text/calendar" });
+        try {
+          if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+            await navigator.share({ files: [arquivo], title: "Calendário do controle financeiro" });
+            c.salvar();
+            return this.status("Arquivo do calendário compartilhado: " + c.resumoTxt + ".");
+          }
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+        }
+        const url = URL.createObjectURL(arquivo);
+        const a = document.createElement("a");
+        a.href = url; a.download = c.nome;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        c.salvar();
+        this.status("Arquivo do calendário baixado (" + c.nome + "): " + c.resumoTxt + ".");
+      },
+      mostrarBoasVindas: !!s.boasVindas,
+      fecharBoasVindas: () => {
+        try { localStorage.setItem(this.CHAVE + "-boas-vindas", "1"); } catch (err) { /* sem armazenamento */ }
+        this.setState({ boasVindas: false });
+      },
+      abrirArquivo: async () => {
+        if (!this.suportaFS()) return;
+        try {
+          const [h] = await window.showOpenFilePicker({
+            types: [{ description: "Dados do controle financeiro", accept: { "application/json": [".json"] } }],
+            multiple: false,
+          });
+          const arquivo = await h.getFile();
+          const dados = JSON.parse(await arquivo.text());
+          if (this.aplicar(dados, h.name)) {
+            this.handle = h;
+            this.setState({ nomeArquivo: h.name });
+            this.guardarHandle(h);
+          }
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+          this.status("Não consegui abrir esse arquivo.", true);
+        }
+      },
+      sair: async () => {
+        if (!this.suportaFS()) {
+          this.status("Backup exportado em " + this.baixarJson() + ". Pode fechar a janela.");
+          return;
+        }
+        try {
+          let h = this.handle;
+          if (!h) {
+            h = await window.showSaveFilePicker({
+              suggestedName: "controle-financeiro.json",
+              types: [{ description: "Dados do controle financeiro", accept: { "application/json": [".json"] } }],
+            });
+            this.handle = h;
+            this.setState({ nomeArquivo: h.name });
+            this.guardarHandle(h);
+          }
+          await this.gravarNoArquivo(h);
+          this.status("Dados gravados em " + h.name + ". Pode fechar a janela.");
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+          this.status("Não consegui gravar no arquivo. Backup baixado em " + this.baixarJson() + ".", true);
+        }
+      },
+      importar: e => {
+        const arquivo = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!arquivo) return;
+        const leitor = new FileReader();
+        leitor.onload = () => {
+          try {
+            const dados = JSON.parse(leitor.result);
+            this.aplicar(dados, arquivo.name);
+          } catch (err) { this.status("Não consegui ler esse arquivo JSON.", true); }
+        };
+        leitor.readAsText(arquivo);
+      },
+      privacyLabel: s.privado ? "Mostrar valores" : "Ocultar valores",
+      togglePrivacy: () => this.setState(st => ({ privado: !st.privado })),
+
+      saldoFmt: sinal(sobra),
+      saldoRealFmt: sinal(realizado),
+      saldoRealNota: "Recebido menos pago · previsto no fim do mês: " + sinal(saldoPrevisto),
+      fluxoResumo: "Realizado: " + sinal(realizado),
+      entradasFmt: this.fmt(entradas),
+      entradasNota: plural(ts.filter(t => t.tipo === "entrada").length) + (entPrevLanc ? " · " + this.fmt(entPrevLanc) + " a receber" : ""),
+      saidasFmt: this.fmt(saidas),
+      saidasNota: plural(ts.filter(t => t.tipo === "saida").length) + (saidasAbertas ? " · " + this.fmt(saidasAbertas) + " a pagar" : "") + (aportesMes ? " · inclui aportes" : ""),
+      aReceberFmt: this.fmt(entPrevReceber),
+      aReceberNota: (recDoMes.length === 0 ? "Nada previsto para " + nomeMes.toLowerCase() : recDoMes.map(x => x.r.nome).join(", ") + " · ainda não recebido")
+        + (receberTotal > entPrevReceber ? " · total pendente " + this.fmt(receberTotal) : ""),
+      temAportes: aportesMes > 0,
+      aportesNota: "Aportes em metas no mês: " + this.fmt(aportesMes) + " — dinheiro guardado, fora dos gastos.",
+      receberLista, semReceber: s.receber.length === 0,
+      novoRecNome: s.novoRec.nome, novoRecValor: s.novoRec.valor, novoRecData: s.novoRec.data || "",
+      setNovoRecNome: e => this.setCampo("novoRec", "nome", e.target.value),
+      setNovoRecValor: e => this.setCampo("novoRec", "valor", e.target.value),
+      setNovoRecData: e => this.setCampo("novoRec", "data", e.target.value),
+      editandoRec: s.novoRec.idx !== null && s.novoRec.idx !== undefined,
+      botaoRec: s.novoRec.idx !== null && s.novoRec.idx !== undefined ? "Salvar" : "Add",
+      cancelarRec: () => this.setState({ novoRec: { nome: "", valor: "", data: "", idx: null } }),
+      addReceber: e => {
+        e.preventDefault();
+        const n = s.novoRec.nome.trim();
+        const v = this.num(s.novoRec.valor);
+        if (!n || !isFinite(v) || v <= 0) return this.status("Informe de quem/o quê e um valor maior que zero.", true);
+        const item = { nome: n, valor: v, data: s.novoRec.data || "" };
+        this.setState(st => {
+          const idx = st.novoRec.idx;
+          const editando = idx !== null && idx !== undefined && st.receber[idx];
+          return {
+            receber: editando ? st.receber.map((r, j) => j === idx ? { ...r, ...item } : r) : st.receber.concat(item),
+            novoRec: { nome: "", valor: "", data: "", idx: null },
+            statusTexto: editando ? "Valor a receber atualizado." : "", statusErro: false,
+          };
+        });
+      },
+      dividaFmt: this.fmt(dividaTotal),
+      dividaNota: futuras.length === 0 ? "Nenhuma parcela em aberto a partir de " + nomeMes.toLowerCase()
+        : "Parcelas e dívidas em aberto · "
+        + futuras.length + (futuras.length === 1 ? " parcela" : " parcelas") + " até " + nomesMes[ultimaDiv.mes].slice(0, 3).toLowerCase() + "/" + anoDe(ultimaDiv),
+      sobraLabel: (sobra < 0 ? "Déficit de " : "Sobra de ") + this.fmt(sobra),
+      saldoPrevistoFmt: sinal(saldoPrevisto),
+      corSaldoPrevisto: saldoPrevisto < 0 ? "#B2482F" : accent,
+      resumoContas: pendentes.length + " a pagar · " + entPendentes.length + " a receber",
+      movRealizadoFmt: (movRealizado < 0 ? "− " : "") + this.fmt(movRealizado),
+      corMovRealizado: movRealizado < 0 ? "#B2482F" : "#1A1A1A",
+      movFinalFmt: (movFinal < 0 ? "− " : "") + this.fmt(movFinal),
+      corMovFinal: movFinal < 0 ? "#B2482F" : "#2E7D4F",
+      movDetalhe: "Entradas " + this.fmt(movEntTot) + " − saídas " + this.fmt(movSaiTot) + (aportesMes ? " (inclui aportes em metas " + this.fmt(aportesMes) + ")" : ""),
+
+      fluxo, categorias, contas, vencimentos, metas, lancamentos, extrato,
+      semLancamentos: ts.length === 0, semGastos: categorias.length === 0,
+      semMetas: s.metas.length === 0, semExtrato: extrato.length === 0,
+
+      filtros: ["Tudo", "Entradas", "Saídas"].map(f => ({
+        label: f, bg: f === s.filtro ? accent : "#FFFFFF",
+        fg: f === s.filtro ? "#F4F2EE" : "#7A756C",
+        borda: f === s.filtro ? accent : "#DCD7CD",
+        select: () => this.setState({ filtro: f }),
+      })),
+
+      formTitulo: s.form.id ? "Editar lançamento" : "Novo lançamento",
+      botaoSalvar: s.form.id ? "Salvar alterações" : "Lançar",
+      editando: !!s.form.id,
+      naoEditando: !s.form.id,
+      editandoSerie: !!(s.form.id && s.txs.some(t => t.id === s.form.id && t.serie)),
+      fEscopo: s.form.escopo || "um",
+      setEscopo: e => this.setForm("escopo", e.target.value),
+      labelPagoSim: s.form.tipo === "entrada" ? "Recebida" : "Pago",
+      labelPagoNao: s.form.tipo === "entrada" ? "A receber" : "A pagar",
+      fDesc: s.form.desc, fValor: s.form.valor, fDia: s.form.dia,
+      fTipo: s.form.tipo, fCat: s.form.cat, fConta: s.form.conta, fRepetir: s.form.repetir,
+      setRepetir: e => this.setForm("repetir", e.target.value),
+      fBoleto: s.form.boleto || "",
+      setBoleto: e => this.setForm("boleto", e.target.value),
+      lerBoleto: () => aplicarLeitura(s.form.boleto || ""),
+      escanear: () => this.abrirScanner(
+        texto => aplicarLeitura(texto),
+        erro => this.setState({ aviso: erro, avisoErro: true })
+      ),
+      lerFoto: e => {
+        const arquivo = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!arquivo) return;
+        this.setState({ aviso: "Procurando o código na foto…", avisoErro: false });
+        this.lerImagem(arquivo)
+          .then(texto => texto ? aplicarLeitura(texto) : this.setState({ aviso: "Não encontrei um código nessa foto. Tente uma foto mais de perto, reta e bem iluminada, só com o código.", avisoErro: true }))
+          .catch(() => this.setState({ aviso: "Não consegui ler essa imagem.", avisoErro: true }));
+      },
+      temMetas: s.metas.length > 0,
+      fMeta: s.form.meta || "",
+      opcoesMetas: [{ valor: "", label: "Não é aporte" }].concat(s.metas.map(g => ({ valor: String(g.id), label: g.nome }))),
+      setMeta: e => {
+        const id = e.target.value;
+        const g = s.metas.find(x => String(x.id) === id);
+        this.setState(st => ({ form: { ...st.form, meta: id, ...(g ? { tipo: "saida", cat: "Metas", desc: st.form.desc || "Aporte · " + g.nome, pago: "sim" } : {}) } }));
+      },
+      fBill: s.form.bill || "",
+      opcoesBills: [{ valor: "", label: "Descrição livre" }].concat(s.bills.map(x => ({ valor: x.id, label: x.nome }))),
+      setBill: e => {
+        const id = e.target.value;
+        const conta = s.bills.find(x => x.id === id);
+        if (!conta) return this.setState(st => ({ form: { ...st.form, bill: "" } }));
+        this.setState(st => ({
+          form: {
+            ...st.form, bill: id, desc: conta.nome,
+            valor: String(conta.valor).replace(".", ","),
+            dia: conta.dia ? iso(s.ano, MESES.indexOf(s.mes), conta.dia) : st.form.dia,
+            tipo: "saida",
+            cat: st.cats.some(c => c.nome === conta.cat) ? conta.cat : st.form.cat,
+          },
+        }));
+      },
+      dicaRepetir: "1 = lançamento único. 12 = um ano inteiro, virando o ano automaticamente.",
+      setDesc: e => this.setForm("desc", e.target.value),
+      setValor: e => this.setForm("valor", e.target.value),
+      setDia: e => this.setState(st => ({ form: { ...st.form, dia: e.target.value, pago: st.form.id ? st.form.pago : undefined } })),
+      fPago: (() => {
+        if (s.form.pago) return s.form.pago;
+        const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.form.dia || "");
+        return p && Date.UTC(+p[1], +p[2] - 1, +p[3]) <= hojeMs ? "sim" : "nao";
+      })(),
+      setPago: e => this.setForm("pago", e.target.value),
+      isSaida: s.form.tipo === "saida",
+      setTipo: e => {
+        const tipo = e.target.value;
+        this.setState(st => ({
+          form: { ...st.form, tipo, meta: tipo === "entrada" ? "" : st.form.meta },
+          aviso: tipo === "entrada" && st.form.meta ? "Aporte em meta é sempre uma saída — o vínculo com a meta foi removido." : st.aviso,
+          avisoErro: false,
+        }));
+      },
+      setCat: e => this.setForm("cat", e.target.value),
+      setConta: e => this.setForm("conta", e.target.value),
+      avisoForm: s.aviso, corAviso: s.avisoErro ? "#B2482F" : "#7A756C",
+      cancelarEdicao: () => this.setState(st => ({ form: formVazio(st), aviso: "" })),
+      salvarLancamento: e => {
+        e.preventDefault();
+        const f = s.form;
+        const v = this.num(f.valor);
+        const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f.dia || "");
+        const anoL = partes ? parseInt(partes[1], 10) : NaN;
+        const mesIdx = partes ? parseInt(partes[2], 10) - 1 : -1;
+        const dia = partes ? parseInt(partes[3], 10) : NaN;
+        if (!f.desc.trim()) return this.setState({ aviso: "Informe a descrição.", avisoErro: true });
+        if (!isFinite(v) || v <= 0) return this.setState({ aviso: "Informe um valor maior que zero.", avisoErro: true });
+        if (!partes || mesIdx < 0 || mesIdx > 11) return this.setState({ aviso: "Informe a data no calendário.", avisoErro: true });
+        const pagoAuto = (a, mi, d) => Date.UTC(a, mi, d) <= hojeMs;
+        const pagoEscolhido = f.pago === "sim" ? true : f.pago === "nao" ? false : pagoAuto(anoL, mesIdx, dia);
+        // Aporte em meta é sempre saída.
+        const tipo = f.meta ? "saida" : f.tipo;
+        const orig = f.id ? s.txs.find(t => t.id === f.id) : null;
+        const dados = { desc: f.desc.trim(), valor: v, tipo, cat: f.cat, conta: f.conta, dia, mes: MESES[mesIdx], ano: anoL, bill: f.bill || undefined, meta: f.meta ? Number(f.meta) : undefined, nota: f.nota || undefined, pago: pagoEscolhido };
+        dados.pagoEm = !pagoEscolhido ? undefined
+          : (orig && orig.pago && orig.pagoEm ? orig.pagoEm : (pagoAuto(anoL, mesIdx, dia) ? f.dia : hojeIso));
+        const pedido = parseInt(f.repetir, 10);
+        if (!f.id && f.repetir !== "" && (!isFinite(pedido) || pedido < 1)) return this.setState({ aviso: "Repetições deve ser 1 ou mais.", avisoErro: true });
+        const reps = Math.min(isFinite(pedido) ? pedido : 1, 120);
+        const repete = !f.id && reps > 1;
+        let novos = [{ id: Date.now(), ...dados }];
+        if (repete) {
+          const serie = "s" + Date.now();
+          novos = [];
+          for (let i = 0; i < reps; i++) {
+            const idx = mesIdx + i;
+            const anoI = anoL + Math.floor(idx / 12);
+            const mi = idx % 12;
+            const dI = Math.min(dia, diasEm(anoI, mi));
+            const pg = i === 0 ? dados.pago : pagoAuto(anoI, mi, dI);
+            novos.push({ id: Date.now() + i, ...dados, dia: dI, mes: MESES[mi], ano: anoI, serie, pago: pg, pagoEm: i === 0 ? dados.pagoEm : (pg ? iso(anoI, mi, dI) : undefined) });
+          }
+        }
+        const proximos = !!(orig && orig.serie && f.escopo === "proximos");
+        let nProx = 0;
+        this.setState(st => {
+          let txs;
+          nProx = 0;
+          if (f.id) {
+            const k0 = orig ? chave(orig) : 0;
+            txs = st.txs.map(t => {
+              if (t.id === f.id) return { ...t, ...dados };
+              if (proximos && t.serie === orig.serie && chave(t) > k0) {
+                nProx++;
+                const mi = MESES.indexOf(t.mes);
+                return { ...t, desc: dados.desc, valor: dados.valor, tipo: dados.tipo, cat: dados.cat, conta: dados.conta, meta: dados.meta, dia: Math.min(dia, diasEm(anoDe(t), mi)) };
+              }
+              return t;
+            });
+          } else {
+            txs = st.txs.concat(novos);
+          }
+          return {
+          txs,
+          mes: dados.mes, ano: dados.ano,
+          cats: dados.cat === "Metas" && !st.cats.some(c => c.nome === "Metas") ? st.cats.concat({ nome: "Metas", cor: "#7A4E9B" }) : st.cats,
+          form: formVazio(st, { tipo, cat: f.cat, conta: f.conta }),
+          aviso: f.id ? (proximos ? "Lançamento atualizado, junto com " + nProx + (nProx === 1 ? " mês seguinte" : " meses seguintes") + " da recorrência." : "Lançamento atualizado.") : (repete ? "Recorrência criada em " + novos.length + " meses, de " + nomesMes[novos[0].mes].toLowerCase() + "/" + novos[0].ano + " a " + nomesMes[novos[novos.length - 1].mes].toLowerCase() + "/" + novos[novos.length - 1].ano + "." : "Lançamento registrado."),
+          avisoErro: false,
+          };
+        });
+      },
+
+      nomesCategorias: s.cats.map(c => c.nome).concat(s.metas.length && !s.cats.some(c => c.nome === "Metas") ? ["Metas"] : []),
+      nomesContas: s.contas.map(c => c.nome).concat(["A definir"]),
+      opcoesRelatorio: ["Todas as categorias"].concat(s.cats.map(c => c.nome)),
+      relCat,
+      setRelCat: e => this.setState({ relCat: e.target.value }),
+
+      paleta: this.paleta,
+      chipsCategorias: s.cats.map(c => ({
+        nome: c.nome, cor: c.cor,
+        corRemover: corX("cat:" + c.nome),
+        editar: () => this.setState({ novaCat: { nome: c.nome, cor: c.cor, orig: c.nome } }),
+        remover: () => {
+          const uso = s.txs.filter(t => t.cat === c.nome).length + s.bills.filter(x => x.cat === c.nome).length;
+          if (uso) return this.status("Categoria " + c.nome + " está em uso em " + uso + " registro(s). Altere esses lançamentos antes de remover.", true);
+          confirmar("cat:" + c.nome, "a categoria " + c.nome, () => this.setState(st => ({ cats: st.cats.filter(x => x.nome !== c.nome) })));
+        },
+      })),
+      novaCatNome: s.novaCat.nome, novaCatCor: s.novaCat.cor,
+      editandoCat: !!s.novaCat.orig,
+      botaoCat: s.novaCat.orig ? "Salvar" : "Add",
+      cancelarCat: () => this.setState(st => ({ novaCat: { nome: "", cor: st.novaCat.cor, orig: null } })),
+      setNovaCatNome: e => this.setCampo("novaCat", "nome", e.target.value),
+      setNovaCatCor: e => this.setCampo("novaCat", "cor", e.target.value),
+      addCategoria: e => {
+        e.preventDefault();
+        const n = s.novaCat.nome.trim();
+        const orig = s.novaCat.orig;
+        if (!n) return this.status("Informe o nome da categoria.", true);
+        if (s.cats.some(c => c.nome.toLowerCase() === n.toLowerCase() && c.nome !== orig)) return this.status("Já existe uma categoria " + n + ".", true);
+        if (orig) {
+          this.setState(st => ({
+            cats: st.cats.map(c => c.nome === orig ? { ...c, nome: n, cor: st.novaCat.cor } : c),
+            txs: st.txs.map(t => t.cat === orig ? { ...t, cat: n } : t),
+            bills: st.bills.map(b => b.cat === orig ? { ...b, cat: n } : b),
+            form: st.form.cat === orig ? { ...st.form, cat: n } : st.form,
+            relCat: st.relCat === orig ? n : st.relCat,
+            novaCat: { nome: "", cor: st.novaCat.cor, orig: null },
+            statusTexto: "Categoria atualizada em todos os lançamentos.", statusErro: false,
+          }));
+          return;
+        }
+        this.setState(st => ({ cats: st.cats.concat({ nome: n, cor: st.novaCat.cor }), novaCat: { nome: "", cor: st.novaCat.cor, orig: null } }));
+      },
+
+      contasCadastro: s.contas.map(a => ({
+        nome: a.nome, cor: a.cor || accent,
+        tipo: a.tipo + (a.inicial ? " · saldo inicial " + sinal(a.inicial) : ""),
+        corRemover: corX("conta:" + a.nome),
+        editar: () => this.setState({ novaConta: { nome: a.nome, tipo: a.tipo, inicial: a.inicial ? String(a.inicial).replace(".", ",") : "", orig: a.nome } }),
+        remover: () => {
+          const uso = s.txs.filter(t => t.conta === a.nome).length;
+          if (uso) return this.status("Conta " + a.nome + " está em uso em " + uso + " lançamento(s). Altere esses lançamentos antes de remover.", true);
+          confirmar("conta:" + a.nome, "a conta " + a.nome, () => this.setState(st => ({ contas: st.contas.filter(x => x.nome !== a.nome) })));
+        },
+      })),
+      novaContaNome: s.novaConta.nome, novaContaTipo: s.novaConta.tipo, novaContaInicial: s.novaConta.inicial || "",
+      editandoConta: !!s.novaConta.orig,
+      botaoConta: s.novaConta.orig ? "Salvar" : "Add",
+      cancelarConta: () => this.setState(st => ({ novaConta: { nome: "", tipo: st.novaConta.tipo, inicial: "", orig: null } })),
+      setNovaContaNome: e => this.setCampo("novaConta", "nome", e.target.value),
+      setNovaContaTipo: e => this.setCampo("novaConta", "tipo", e.target.value),
+      setNovaContaInicial: e => this.setCampo("novaConta", "inicial", e.target.value),
+      addConta: e => {
+        e.preventDefault();
+        const n = s.novaConta.nome.trim();
+        const orig = s.novaConta.orig;
+        if (!n) return this.status("Informe o nome da conta.", true);
+        if (n.toLowerCase() === "a definir") return this.status("\"A definir\" é um nome reservado.", true);
+        if (s.contas.some(c => c.nome.toLowerCase() === n.toLowerCase() && c.nome !== orig)) return this.status("Já existe uma conta " + n + ".", true);
+        const bruto = String(s.novaConta.inicial || "").trim();
+        const ini = bruto ? this.num(bruto) : 0;
+        if (!isFinite(ini)) return this.status("Saldo inicial inválido.", true);
+        const cores = { "Conta bancária": accent, "Cartão de crédito": "#C9A227", "Carteira": "#8A857B" };
+        if (orig) {
+          this.setState(st => ({
+            contas: st.contas.map(c => c.nome === orig ? { ...c, nome: n, tipo: st.novaConta.tipo, cor: cores[st.novaConta.tipo], inicial: ini } : c),
+            txs: st.txs.map(t => t.conta === orig ? { ...t, conta: n } : t),
+            form: st.form.conta === orig ? { ...st.form, conta: n } : st.form,
+            novaConta: { nome: "", tipo: st.novaConta.tipo, inicial: "", orig: null },
+            statusTexto: "Conta atualizada.", statusErro: false,
+          }));
+          return;
+        }
+        this.setState(st => ({ contas: st.contas.concat({ nome: n, tipo: st.novaConta.tipo, cor: cores[st.novaConta.tipo], inicial: ini }), novaConta: { nome: "", tipo: st.novaConta.tipo, inicial: "", orig: null } }));
+      },
+
+      billsCadastro: bills.map(b => ({
+        nome: b.nome, valorFmt: this.fmt(b.valor),
+        diaLabel: (b.dia === null ? "Dia não informado" : "Todo dia " + b.dia + " · em " + nomeMes.toLowerCase() + " vence " + dataBR(s.ano, mesIdxSel, Math.min(b.dia, diasDoMes))) + " · " + (b.cat || "Outros"),
+        corRemover: corX("bill:" + b.id),
+        editar: () => this.setState({ novoBill: { id: b.id, nome: b.nome, valor: String(b.valor).replace(".", ","), dia: b.dia ? String(b.dia) : "", cat: b.cat || catPadrao(s) } }),
+        lancar: () => {
+          if (estaPaga(b)) return this.status(b.nome + " já está lançada em " + s.mes + "/" + s.ano + ".", true);
+          this.setState(st => ({
+            txs: st.txs.concat({ id: Date.now(), desc: b.nome, valor: b.valor, tipo: "saida", cat: st.cats.some(c => c.nome === b.cat) ? b.cat : catPadrao(st), conta: contaPadrao(st), dia: Math.min(b.dia || this.hoje, diasEm(st.ano, MESES.indexOf(st.mes))), mes: st.mes, ano: st.ano, bill: b.id, pago: false }),
+            statusTexto: b.nome + " lançada em " + st.mes + "/" + st.ano + " como a pagar, na conta " + contaPadrao(st) + ".", statusErro: false,
+          }));
+        },
+        remover: () => confirmar("bill:" + b.id, "a conta a pagar " + b.nome, () => this.setState(st => ({ bills: st.bills.filter(x => x.id !== b.id), novoBill: st.novoBill.id === b.id ? { id: null, nome: "", valor: "", dia: "", cat: st.novoBill.cat } : st.novoBill }))),
+      })),
+      novoBillNome: s.novoBill.nome, novoBillValor: s.novoBill.valor, novoBillDia: s.novoBill.dia, novoBillCat: s.novoBill.cat,
+      editandoBill: !!s.novoBill.id,
+      botaoBill: s.novoBill.id ? "Salvar" : "Add",
+      cancelarBill: () => this.setState(st => ({ novoBill: { id: null, nome: "", valor: "", dia: "", cat: st.novoBill.cat } })),
+      setNovoBillCat: e => this.setCampo("novoBill", "cat", e.target.value),
+      setNovoBillNome: e => this.setCampo("novoBill", "nome", e.target.value),
+      setNovoBillValor: e => this.setCampo("novoBill", "valor", e.target.value),
+      setNovoBillDia: e => this.setCampo("novoBill", "dia", e.target.value),
+      addBill: e => {
+        e.preventDefault();
+        const n = s.novoBill.nome.trim();
+        const v = this.num(s.novoBill.valor);
+        const d = parseInt(s.novoBill.dia, 10);
+        if (!n || !isFinite(v) || v <= 0) return this.status("Informe o nome e um valor maior que zero.", true);
+        const dia = (d >= 1 && d <= 31) ? d : null;
+        if (s.novoBill.id) {
+          const id = s.novoBill.id;
+          this.setState(st => ({
+            bills: st.bills.map(b => b.id === id ? { ...b, nome: n, valor: v, dia, cat: st.novoBill.cat } : b),
+            novoBill: { id: null, nome: "", valor: "", dia: "", cat: st.novoBill.cat },
+            statusTexto: "Conta a pagar atualizada. Lançamentos já feitos continuam como estavam.", statusErro: false,
+          }));
+          return;
+        }
+        this.setState(st => ({
+          bills: st.bills.concat({ id: "b" + Date.now(), nome: n, valor: v, dia, cat: st.novoBill.cat, pagas: [] }),
+          novoBill: { id: null, nome: "", valor: "", dia: "", cat: st.novoBill.cat },
+        }));
+      },
+
+      semSeries: series.length === 0,
+      series,
+      metasCadastro: s.metas.map(g => ({
+        nome: g.nome,
+        editar: () => this.setState({ novaMeta: { id: g.id, nome: g.nome, atual: String(g.atual).replace(".", ","), alvo: String(g.alvo).replace(".", ",") } }),
+        progresso: this.fmt(guardado(g)).replace("R$ ", "") + " de " + this.fmt(g.alvo).replace("R$ ", "") + (aportesDe(g).length ? " · inicial " + this.fmt(g.atual).replace("R$ ", "") : ""),
+        corRemover: corX("meta:" + g.id),
+        remover: () => {
+          const n = aportesDe(g).length;
+          if (n) return this.status("A meta " + g.nome + " tem " + n + " aporte(s) lançado(s). Exclua os aportes na aba Lançar antes de remover.", true);
+          confirmar("meta:" + g.id, "a meta " + g.nome, () => this.setState(st => ({ metas: st.metas.filter(x => x.id !== g.id) })));
+        },
+      })),
+      editandoMeta: !!s.novaMeta.id,
+      botaoMeta: s.novaMeta.id ? "Salvar" : "Add",
+      cancelarMeta: () => this.setState({ novaMeta: { nome: "", atual: "", alvo: "" } }),
+      novaMetaNome: s.novaMeta.nome, novaMetaAtual: s.novaMeta.atual, novaMetaAlvo: s.novaMeta.alvo,
+      setNovaMetaNome: e => this.setCampo("novaMeta", "nome", e.target.value),
+      setNovaMetaAtual: e => this.setCampo("novaMeta", "atual", e.target.value),
+      setNovaMetaAlvo: e => this.setCampo("novaMeta", "alvo", e.target.value),
+      addMeta: e => {
+        e.preventDefault();
+        const n = s.novaMeta.nome.trim();
+        const atual = this.num(s.novaMeta.atual) || 0;
+        const alvo = this.num(s.novaMeta.alvo);
+        if (!n || !isFinite(alvo) || alvo <= 0) return this.status("Informe o nome da meta e um alvo maior que zero.", true);
+        if (s.novaMeta.id) {
+          const id = s.novaMeta.id;
+          this.setState(st => ({
+            metas: st.metas.map(g => g.id === id ? { ...g, nome: n, atual, alvo } : g),
+            novaMeta: { nome: "", atual: "", alvo: "" },
+            statusTexto: "Meta " + n + " atualizada.", statusErro: false,
+          }));
+          return;
+        }
+        const cores = [accent, "#D97742", "#2B6A8F", "#7A4E9B"];
+        this.setState(st => ({
+          metas: st.metas.concat({ id: Date.now(), nome: n, atual, alvo, cor: cores[st.metas.length % cores.length] }),
+          cats: st.cats.some(c => c.nome === "Metas") ? st.cats : st.cats.concat({ nome: "Metas", cor: "#7A4E9B" }),
+          novaMeta: { nome: "", atual: "", alvo: "" },
+        }));
+      },
+    };
+  }
+}
+
+</script>
+</body>
+</html>
